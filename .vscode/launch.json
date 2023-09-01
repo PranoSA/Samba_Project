@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Web_Server",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "./web_server",
+            "args": [
+                "--config",
+                "../web_server/config.yml",
+                "--jwks",
+                "http://172.23.66.158:8080/realms/samba/protocol/openid-connect/certs"
+            ]
+        }
+    ],
+    "args": [
+        "--config",
+        "web_server/config.yml"
+    ]
+}

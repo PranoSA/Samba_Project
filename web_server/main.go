@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"flag"
 	"fmt"
@@ -9,9 +10,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/PranoSA/samba_share_backend/proto_samba_management"
 	"github.com/PranoSA/samba_share_backend/web_server/auth"
 	"github.com/PranoSA/samba_share_backend/web_server/models"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"gopkg.in/yaml.v3"
 )
 
@@ -54,6 +58,27 @@ type Config struct {
 }
 
 func main() {
+
+	var conn *grpc.ClientConn
+	conn, connerr := grpc.Dial(":9000", grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	if connerr != nil {
+		log.Fatalf("did not connect: %s", connerr)
+	}
+	defer conn.Close()
+
+	c := proto_samba_management.NewSambaAllocationClient(conn)
+
+	response, err := c.AllocateSambaShare(context.Background(), &proto_samba_management.RequestShambaShare{
+		Owner:     "pcadler@gmail.com",
+		AllocSize: 1000,
+	})
+
+	/*response, err := c.SayHello(context.Background(), &chat.Message{Body: "Hello From Client!"}) */
+	if err != nil {
+		log.Fatalf("Error when calling SayHello: %s", err)
+	}
+	log.Printf("Response from server: %s", response.Ip)
 
 	fmt.Printf("Starting Server : \n")
 

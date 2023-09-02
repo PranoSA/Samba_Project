@@ -2,3 +2,7 @@ web_server/config.yml
 out/*
 out
 .env
+*.pem
+*.csr
+*.pub
+

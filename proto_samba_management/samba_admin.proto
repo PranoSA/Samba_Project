@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option go_package = "github.com/PranoSA/samba_share_backend/proto_samba_management";
+
+message RequestShambaShare {
+    string owner = 1;
+    int64 alloc_size = 2;
+}
+
+message SambaResponse {
+    int32 status = 1;
+    string fsid  = 2;
+    string ip = 3;
+};
+
+service SambaAllocation {
+    rpc AllocateSambaShare(RequestShambaShare) returns (SambaResponse){} 
+}
+
+
+
+
+

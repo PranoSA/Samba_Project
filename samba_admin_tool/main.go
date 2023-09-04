@@ -92,6 +92,7 @@ func main() {
 		var size int
 
 		var view bool
+		var Enforce bool
 
 		flag.StringVar(&Host, "host", "localhost", "Host Of The Postgres Database Server")
 		flag.IntVar(&Port, "port", 5432, "Port of the Postgres Database Server")
@@ -107,6 +108,7 @@ func main() {
 		flag.IntVar(&id, "id", 0, "ID Of Server To Add")
 		flag.StringVar(&ip, "ip", "", "Ip of Server to Add")
 		flag.StringVar(&mount_path, "mount", "", "Mount Location")
+		flag.BoolVar(&Enforce, "enforce", false, "Enforce GRPC Communication with The Server")
 
 		flag.IntVar(&size, "size", 0, "Size of Disk To Be Added")
 

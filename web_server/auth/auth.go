@@ -42,18 +42,24 @@ import (
  *
  */
 
+type AuthInterface interface {
+	Authentication
+	UserManagementAuthentication
+	CookieAuthentication
+}
+
 type Authentication interface {
-	AuthenticationMiddleWare(r *http.Request, w http.Response, ap httprouter.Params) httprouter.Handle
+	AuthenticationMiddleWare(next httprouter.Handle) httprouter.Handle
 }
 
 type UserManagementAuthentication interface {
-	Login(r *http.Request, w http.Response, ap httprouter.Params)
-	Signup(r *http.Request, w http.Response, ap httprouter.Params)
-	Logout(r *http.Request, w http.Response, ap httprouter.Params)
+	Login(w http.ResponseWriter, r *http.Request, ap httprouter.Params)
+	Signup(w http.ResponseWriter, r *http.Request, ap httprouter.Params)
+	Logout(w http.ResponseWriter, r *http.Request, ap httprouter.Params)
 }
 
 type CookieAuthentication interface {
-	CSRF(r *http.Request, w http.Response, rp httprouter.Params)
+	CSRF(w http.ResponseWriter, r *http.Request, ap httprouter.Params)
 }
 
 /**

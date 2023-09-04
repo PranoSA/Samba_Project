@@ -1,0 +1,62 @@
+#DEFAULT LOCATION -> /etc/samba_sever/web/web_config.yml
+
+CorsOrigins:
+- "localhost:8080"
+- "*"
+
+User_Option: "oidc" #"postgres","ldap", "oidc","dynamo"
+Session_Option: "bearer" #"bearer", "simple", "redis"
+Data_Option: "postgres" #"postgres", "dynamodb", "etcd"
+
+TLS_KEY: ""
+TLS_FULLCHAIN: ""
+
+
+OIDC_CONFIG:
+  JWKS_URL: ""
+  ISSUER: ""
+  AUDIENCE: ""
+
+
+PG_CONFIG:
+  HOST: "localhost"
+  PORT: 5432
+  USER: "phil"
+  USER_TABLE: "users" #THIS IS IGNORED 
+
+
+SAMBA_SERVERS:
+- id: 1
+  host: localhost ##DEFAULT IS 01.samba_servers.pranoSA
+  port: 8080
+  CA_CERT: "./ca-cert.pem" #DEFAULT LOCATION?
+  TLS_KEY: "./client-key.pem"
+  TLS_CERT: "./client-cert.pem"
+
+  
+### Ignored, Only For Example, Remove EXAMPLE_ for actual
+EXAMPLE_LDAP_CONFIG: 
+  TLS_CERT:
+  HOST: 
+  BASE_DN: #BASE DN TO SERACH FROM
+
+
+EXAMPLE_REDIS_CONFIG:
+  CLUSTER_CONNECTION:
+    endpoints:
+    - host: localhost
+      port: 6379
+    user: "" #PASSWORD THROUGH CLI
+   CA_CERT:
+    "./redis-ca-cert.pem"
+  CLIENT_CERT:
+    "./redis-client-cert.pem"
+  CLIENT_KEY:
+    "./redis-client-key.pem"
+
+
+EXAMPLE_DYNAMO_CONFIG:
+
+
+
+

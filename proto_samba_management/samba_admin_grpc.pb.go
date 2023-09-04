@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SambaAllocationClient interface {
 	AllocateSambaShare(ctx context.Context, in *RequestShambaShare, opts ...grpc.CallOption) (*SambaResponse, error)
+	AddUserToShare(ctx context.Context, in *AddUser, opts ...grpc.CallOption) (*AddUserResponse, error)
 }
 
 type sambaAllocationClient struct {
@@ -42,11 +43,21 @@ func (c *sambaAllocationClient) AllocateSambaShare(ctx context.Context, in *Requ
 	return out, nil
 }
 
+func (c *sambaAllocationClient) AddUserToShare(ctx context.Context, in *AddUser, opts ...grpc.CallOption) (*AddUserResponse, error) {
+	out := new(AddUserResponse)
+	err := c.cc.Invoke(ctx, "/SambaAllocation/AddUserToShare", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SambaAllocationServer is the server API for SambaAllocation service.
 // All implementations must embed UnimplementedSambaAllocationServer
 // for forward compatibility
 type SambaAllocationServer interface {
 	AllocateSambaShare(context.Context, *RequestShambaShare) (*SambaResponse, error)
+	AddUserToShare(context.Context, *AddUser) (*AddUserResponse, error)
 	mustEmbedUnimplementedSambaAllocationServer()
 }
 
@@ -56,6 +67,9 @@ type UnimplementedSambaAllocationServer struct {
 
 func (UnimplementedSambaAllocationServer) AllocateSambaShare(context.Context, *RequestShambaShare) (*SambaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AllocateSambaShare not implemented")
+}
+func (UnimplementedSambaAllocationServer) AddUserToShare(context.Context, *AddUser) (*AddUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddUserToShare not implemented")
 }
 func (UnimplementedSambaAllocationServer) mustEmbedUnimplementedSambaAllocationServer() {}
 
@@ -88,6 +102,24 @@ func _SambaAllocation_AllocateSambaShare_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SambaAllocation_AddUserToShare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddUser)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SambaAllocationServer).AddUserToShare(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/SambaAllocation/AddUserToShare",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SambaAllocationServer).AddUserToShare(ctx, req.(*AddUser))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SambaAllocation_ServiceDesc is the grpc.ServiceDesc for SambaAllocation service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +130,182 @@ var SambaAllocation_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AllocateSambaShare",
 			Handler:    _SambaAllocation_AllocateSambaShare_Handler,
+		},
+		{
+			MethodName: "AddUserToShare",
+			Handler:    _SambaAllocation_AddUserToShare_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "samba_admin.proto",
+}
+
+// DiskAllocationClient is the client API for DiskAllocation service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type DiskAllocationClient interface {
+	AllocatePartition(ctx context.Context, in *PartitionAllocRequest, opts ...grpc.CallOption) (*PartitionAllocResponse, error)
+}
+
+type diskAllocationClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewDiskAllocationClient(cc grpc.ClientConnInterface) DiskAllocationClient {
+	return &diskAllocationClient{cc}
+}
+
+func (c *diskAllocationClient) AllocatePartition(ctx context.Context, in *PartitionAllocRequest, opts ...grpc.CallOption) (*PartitionAllocResponse, error) {
+	out := new(PartitionAllocResponse)
+	err := c.cc.Invoke(ctx, "/DiskAllocation/AllocatePartition", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// DiskAllocationServer is the server API for DiskAllocation service.
+// All implementations must embed UnimplementedDiskAllocationServer
+// for forward compatibility
+type DiskAllocationServer interface {
+	AllocatePartition(context.Context, *PartitionAllocRequest) (*PartitionAllocResponse, error)
+	mustEmbedUnimplementedDiskAllocationServer()
+}
+
+// UnimplementedDiskAllocationServer must be embedded to have forward compatible implementations.
+type UnimplementedDiskAllocationServer struct {
+}
+
+func (UnimplementedDiskAllocationServer) AllocatePartition(context.Context, *PartitionAllocRequest) (*PartitionAllocResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AllocatePartition not implemented")
+}
+func (UnimplementedDiskAllocationServer) mustEmbedUnimplementedDiskAllocationServer() {}
+
+// UnsafeDiskAllocationServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to DiskAllocationServer will
+// result in compilation errors.
+type UnsafeDiskAllocationServer interface {
+	mustEmbedUnimplementedDiskAllocationServer()
+}
+
+func RegisterDiskAllocationServer(s grpc.ServiceRegistrar, srv DiskAllocationServer) {
+	s.RegisterService(&DiskAllocation_ServiceDesc, srv)
+}
+
+func _DiskAllocation_AllocatePartition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PartitionAllocRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DiskAllocationServer).AllocatePartition(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/DiskAllocation/AllocatePartition",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DiskAllocationServer).AllocatePartition(ctx, req.(*PartitionAllocRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// DiskAllocation_ServiceDesc is the grpc.ServiceDesc for DiskAllocation service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var DiskAllocation_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "DiskAllocation",
+	HandlerType: (*DiskAllocationServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AllocatePartition",
+			Handler:    _DiskAllocation_AllocatePartition_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "samba_admin.proto",
+}
+
+// SpaceAllocationClient is the client API for SpaceAllocation service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type SpaceAllocationClient interface {
+	AlloateSpace(ctx context.Context, in *SpaceAllocationRequest, opts ...grpc.CallOption) (*SpaceallocationResponse, error)
+}
+
+type spaceAllocationClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewSpaceAllocationClient(cc grpc.ClientConnInterface) SpaceAllocationClient {
+	return &spaceAllocationClient{cc}
+}
+
+func (c *spaceAllocationClient) AlloateSpace(ctx context.Context, in *SpaceAllocationRequest, opts ...grpc.CallOption) (*SpaceallocationResponse, error) {
+	out := new(SpaceallocationResponse)
+	err := c.cc.Invoke(ctx, "/SpaceAllocation/AlloateSpace", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// SpaceAllocationServer is the server API for SpaceAllocation service.
+// All implementations must embed UnimplementedSpaceAllocationServer
+// for forward compatibility
+type SpaceAllocationServer interface {
+	AlloateSpace(context.Context, *SpaceAllocationRequest) (*SpaceallocationResponse, error)
+	mustEmbedUnimplementedSpaceAllocationServer()
+}
+
+// UnimplementedSpaceAllocationServer must be embedded to have forward compatible implementations.
+type UnimplementedSpaceAllocationServer struct {
+}
+
+func (UnimplementedSpaceAllocationServer) AlloateSpace(context.Context, *SpaceAllocationRequest) (*SpaceallocationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AlloateSpace not implemented")
+}
+func (UnimplementedSpaceAllocationServer) mustEmbedUnimplementedSpaceAllocationServer() {}
+
+// UnsafeSpaceAllocationServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SpaceAllocationServer will
+// result in compilation errors.
+type UnsafeSpaceAllocationServer interface {
+	mustEmbedUnimplementedSpaceAllocationServer()
+}
+
+func RegisterSpaceAllocationServer(s grpc.ServiceRegistrar, srv SpaceAllocationServer) {
+	s.RegisterService(&SpaceAllocation_ServiceDesc, srv)
+}
+
+func _SpaceAllocation_AlloateSpace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SpaceAllocationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SpaceAllocationServer).AlloateSpace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/SpaceAllocation/AlloateSpace",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SpaceAllocationServer).AlloateSpace(ctx, req.(*SpaceAllocationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// SpaceAllocation_ServiceDesc is the grpc.ServiceDesc for SpaceAllocation service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var SpaceAllocation_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "SpaceAllocation",
+	HandlerType: (*SpaceAllocationServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AlloateSpace",
+			Handler:    _SpaceAllocation_AlloateSpace_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

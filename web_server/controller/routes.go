@@ -4,15 +4,14 @@ import (
 	"net/http"
 
 	"github.com/PranoSA/samba_share_backend/web_server/auth"
+	"github.com/PranoSA/samba_share_backend/web_server/models"
 	"github.com/julienschmidt/httprouter"
 )
 
 type AppRouter struct {
-	CSRF_Protection bool
-	CORS_Origins    []string
-	Authenticator   auth.Authentication
-	SignUpOn        auth.SignUpOnAuthentication
-	CSRF            auth.CookieAuthentication
+	CORS_Origins  []string
+	Authenticator auth.Authentication
+	Models        models.Models
 }
 
 func AuthMiddleware(w http.ResponseWriter, r *http.Request, pa httprouter.Params) {
@@ -23,16 +22,32 @@ func NewAppRouter(approutes AppRouter) *httprouter.Router {
 
 	router := httprouter.New()
 
-	//Group Rotes
-	router.POST("/group/:groupid", approutes.InviteUsers)
+	middleware := approutes.Authenticator.AuthenticationMiddleWare
 
-	//router.POST("")
+	// Inherited Routes
 
-	//Register Routes & Middleware Here
+	if usermanagement, ok := approutes.Authenticator.(auth.UserManagementAuthentication); ok {
+		router.POST("/signup", usermanagement.Signup)
+		router.POST("/login", usermanagement.Login)
+		router.GET("/logout", usermanagement.Logout)
+	}
 
-	//Unprotected Routes
+	if sessionmanager, ok := approutes.Authenticator.(auth.CookieAuthentication); ok {
+		router.POST("/csrf", sessionmanager.CSRF)
+	}
 
-	//Protected Routes
+	//Group & Share Rotes
+	router.DELETE("/group", middleware(approutes.DeleteShare))
+
+	router.POST("/group", middleware(approutes.CreateShare))
+
+	router.POST("/group/:groupid", middleware(approutes.InviteUsers))
+
+	router.POST("/invite/:inviteid", middleware(approutes.AcceptInvite))
+
+	// Space Routes
+
+	// To Be Implemented -> Compute Routes
 
 	return router
 }

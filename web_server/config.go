@@ -12,73 +12,9 @@ import (
 	"github.com/PranoSA/samba_share_backend/web_server/controller"
 	postgres_models "github.com/PranoSA/samba_share_backend/web_server/models/postgres"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	"gopkg.in/yaml.v3"
 )
-
-/**
- *
- * READING IN YAML CONFIG
- *
- * #DEFAULT LOCATION -> /etc/samba_sever/web/web_config.yml
-
-CorsOrigins:
-- "localhost:8080"
-- "*"
-
-User_Option: "oidc" #"postgres","ldap", "oidc","dynamo"
-Session_Option: "oidc" #"oidc", "simple", "redis"
-Data_Option: "postgres" #"postgres", "dynamodb", "etcd"
-
-TLS_KEY: ""
-TLS_FULLCHAIN: ""
-
-
-OIDC_CONFIG:
-  JWKS_URL: ""
-  ISSUER: ""
-  AUDIENCE: ""
-
-
-PG_CONFIG:
-  HOST: "localhost"
-  PORT: 5432
-  USER: "phil"
-  USER_TABLE: "users" #THIS IS IGNORED
-
-
-SAMBA_SERVERS:
-- id: 1
-  host: localhost ##DEFAULT IS 01.samba_servers.pranoSA
-  port: 8080
-  CA_CERT: "./ca-cert.pem" #DEFAULT LOCATION?
-  TLS_KEY: "./client-key.pem"
-  TLS_CERT: "./client-cert.pem"
-
-
-### Ignored, Only For Example, Remove EXAMPLE_ for actual
-EXAMPLE_LDAP_CONFIG:
-  TLS_CERT:
-  HOST:
-  BASE_DN: #BASE DN TO SERACH FROM
-
-
-EXAMPLE_REDIS_CONFIG:
-  CLUSTER_CONNECTION:
-    endpoints:
-    - host: localhost
-      port: 6379
-    user: "" #PASSWORD THROUGH CLI
-   CA_CERT:
-    "./redis-ca-cert.pem"
-  CLIENT_CERT:
-    "./redis-client-cert.pem"
-  CLIENT_KEY:
-    "./redis-client-key.pem"
-
-
-EXAMPLE_DYNAMO_CONFIG:
- *
-*/
 
 type ApplicationConfigurations struct {
 	https_tls_config *tls.Config
@@ -136,6 +72,32 @@ func InitConfig(configPath string) error {
 		}
 		Application.routes.Authenticator = auth
 
+	}
+
+	if ApplicationYamlConfig.Session_Config_Option == "redis" {
+		client := redis.NewClusterClient(&redis.ClusterOptions{
+			Addrs: []string{
+				"localhost:6379",
+			},
+			Username: "",
+			Password: "",
+		})
+		sessions := auth.RedisSessionManager{
+			RDB: client,
+		}
+
+		if ApplicationYamlConfig.User_Config_Option == "postgres" {
+			conn_string := fmt.Sprintf("%s", ApplicationYamlConfig.PG_Config["Port"].(string))
+
+			pool, err := pgxpool.New(context.Background(), conn_string)
+
+			if err != nil {
+				log.Fatal("")
+			}
+			sessions.SUO, err = auth.InitPostgresAuth(pool, "brypt")
+		}
+
+		Application.routes.Authenticator = sessions
 	}
 
 	/**

@@ -15,7 +15,7 @@ import (
 )
 
 type RedisSessionManager struct {
-	RDB *redis.Client
+	RDB *redis.ClusterClient
 	SUO SignUpOnAuthentication
 }
 

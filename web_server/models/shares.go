@@ -29,6 +29,12 @@ type ShareInviteAccept struct {
 	Password    string
 }
 
+/**
+ *
+ * Later Get Shares By User
+ *
+ */
+
 type SambaShareModel interface {
 	AddShare(SambaShareResponse) (*SambaShareResponse, error)
 	DeleteShare(SambaShareResponse) (*SambaShareResponse, error)

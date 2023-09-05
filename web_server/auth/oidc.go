@@ -120,13 +120,14 @@ func (oidc OIDCAuthenticator) AuthenticationMiddleWare(next httprouter.Handle) h
 
 		}
 
+		(*jsonwebtoken).Audience()
 		useremail := (*jsonwebtoken).Subject()
 
-		user, _ := oidc.userModel.GetUserByIDWithCreate(useremail)
+		//user, _ := oidc.userModel.GetUserByIDWithCreate(useremail)
 
-		ctx := context.WithValue(r.Context(), "Authentication", user.Email)
+		ctx := context.WithValue(r.Context(), "Authentication", useremail)
 
-		r.WithContext(ctx)
+		r = r.WithContext(ctx)
 
 		next(w, r, pa)
 	}

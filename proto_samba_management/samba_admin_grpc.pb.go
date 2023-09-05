@@ -24,6 +24,10 @@ const _ = grpc.SupportPackageIsVersion7
 type SambaAllocationClient interface {
 	AllocateSambaShare(ctx context.Context, in *RequestShambaShare, opts ...grpc.CallOption) (*SambaResponse, error)
 	AddUserToShare(ctx context.Context, in *AddUser, opts ...grpc.CallOption) (*AddUserResponse, error)
+	DeleteShare(ctx context.Context, in *DeleteShareRequest, opts ...grpc.CallOption) (*DeleteShareResponse, error)
+	AlloateSpace(ctx context.Context, in *SpaceAllocationRequest, opts ...grpc.CallOption) (*SpaceallocationResponse, error)
+	DeleteSpace(ctx context.Context, in *DeleteSpaceRequest, opts ...grpc.CallOption) (*DeleteSpaceResponse, error)
+	AllocateSpaceConversation(ctx context.Context, opts ...grpc.CallOption) (SambaAllocation_AllocateSpaceConversationClient, error)
 }
 
 type sambaAllocationClient struct {
@@ -52,12 +56,74 @@ func (c *sambaAllocationClient) AddUserToShare(ctx context.Context, in *AddUser,
 	return out, nil
 }
 
+func (c *sambaAllocationClient) DeleteShare(ctx context.Context, in *DeleteShareRequest, opts ...grpc.CallOption) (*DeleteShareResponse, error) {
+	out := new(DeleteShareResponse)
+	err := c.cc.Invoke(ctx, "/SambaAllocation/DeleteShare", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sambaAllocationClient) AlloateSpace(ctx context.Context, in *SpaceAllocationRequest, opts ...grpc.CallOption) (*SpaceallocationResponse, error) {
+	out := new(SpaceallocationResponse)
+	err := c.cc.Invoke(ctx, "/SambaAllocation/AlloateSpace", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sambaAllocationClient) DeleteSpace(ctx context.Context, in *DeleteSpaceRequest, opts ...grpc.CallOption) (*DeleteSpaceResponse, error) {
+	out := new(DeleteSpaceResponse)
+	err := c.cc.Invoke(ctx, "/SambaAllocation/DeleteSpace", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sambaAllocationClient) AllocateSpaceConversation(ctx context.Context, opts ...grpc.CallOption) (SambaAllocation_AllocateSpaceConversationClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SambaAllocation_ServiceDesc.Streams[0], "/SambaAllocation/AllocateSpaceConversation", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &sambaAllocationAllocateSpaceConversationClient{stream}
+	return x, nil
+}
+
+type SambaAllocation_AllocateSpaceConversationClient interface {
+	Send(*SpaceAllocationMessage) error
+	Recv() (*SpaceAllocationMessage, error)
+	grpc.ClientStream
+}
+
+type sambaAllocationAllocateSpaceConversationClient struct {
+	grpc.ClientStream
+}
+
+func (x *sambaAllocationAllocateSpaceConversationClient) Send(m *SpaceAllocationMessage) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *sambaAllocationAllocateSpaceConversationClient) Recv() (*SpaceAllocationMessage, error) {
+	m := new(SpaceAllocationMessage)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SambaAllocationServer is the server API for SambaAllocation service.
 // All implementations must embed UnimplementedSambaAllocationServer
 // for forward compatibility
 type SambaAllocationServer interface {
 	AllocateSambaShare(context.Context, *RequestShambaShare) (*SambaResponse, error)
 	AddUserToShare(context.Context, *AddUser) (*AddUserResponse, error)
+	DeleteShare(context.Context, *DeleteShareRequest) (*DeleteShareResponse, error)
+	AlloateSpace(context.Context, *SpaceAllocationRequest) (*SpaceallocationResponse, error)
+	DeleteSpace(context.Context, *DeleteSpaceRequest) (*DeleteSpaceResponse, error)
+	AllocateSpaceConversation(SambaAllocation_AllocateSpaceConversationServer) error
 	mustEmbedUnimplementedSambaAllocationServer()
 }
 
@@ -70,6 +136,18 @@ func (UnimplementedSambaAllocationServer) AllocateSambaShare(context.Context, *R
 }
 func (UnimplementedSambaAllocationServer) AddUserToShare(context.Context, *AddUser) (*AddUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddUserToShare not implemented")
+}
+func (UnimplementedSambaAllocationServer) DeleteShare(context.Context, *DeleteShareRequest) (*DeleteShareResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteShare not implemented")
+}
+func (UnimplementedSambaAllocationServer) AlloateSpace(context.Context, *SpaceAllocationRequest) (*SpaceallocationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AlloateSpace not implemented")
+}
+func (UnimplementedSambaAllocationServer) DeleteSpace(context.Context, *DeleteSpaceRequest) (*DeleteSpaceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSpace not implemented")
+}
+func (UnimplementedSambaAllocationServer) AllocateSpaceConversation(SambaAllocation_AllocateSpaceConversationServer) error {
+	return status.Errorf(codes.Unimplemented, "method AllocateSpaceConversation not implemented")
 }
 func (UnimplementedSambaAllocationServer) mustEmbedUnimplementedSambaAllocationServer() {}
 
@@ -120,6 +198,86 @@ func _SambaAllocation_AddUserToShare_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SambaAllocation_DeleteShare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteShareRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SambaAllocationServer).DeleteShare(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/SambaAllocation/DeleteShare",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SambaAllocationServer).DeleteShare(ctx, req.(*DeleteShareRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SambaAllocation_AlloateSpace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SpaceAllocationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SambaAllocationServer).AlloateSpace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/SambaAllocation/AlloateSpace",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SambaAllocationServer).AlloateSpace(ctx, req.(*SpaceAllocationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SambaAllocation_DeleteSpace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSpaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SambaAllocationServer).DeleteSpace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/SambaAllocation/DeleteSpace",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SambaAllocationServer).DeleteSpace(ctx, req.(*DeleteSpaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SambaAllocation_AllocateSpaceConversation_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(SambaAllocationServer).AllocateSpaceConversation(&sambaAllocationAllocateSpaceConversationServer{stream})
+}
+
+type SambaAllocation_AllocateSpaceConversationServer interface {
+	Send(*SpaceAllocationMessage) error
+	Recv() (*SpaceAllocationMessage, error)
+	grpc.ServerStream
+}
+
+type sambaAllocationAllocateSpaceConversationServer struct {
+	grpc.ServerStream
+}
+
+func (x *sambaAllocationAllocateSpaceConversationServer) Send(m *SpaceAllocationMessage) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *sambaAllocationAllocateSpaceConversationServer) Recv() (*SpaceAllocationMessage, error) {
+	m := new(SpaceAllocationMessage)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SambaAllocation_ServiceDesc is the grpc.ServiceDesc for SambaAllocation service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -135,8 +293,27 @@ var SambaAllocation_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "AddUserToShare",
 			Handler:    _SambaAllocation_AddUserToShare_Handler,
 		},
+		{
+			MethodName: "DeleteShare",
+			Handler:    _SambaAllocation_DeleteShare_Handler,
+		},
+		{
+			MethodName: "AlloateSpace",
+			Handler:    _SambaAllocation_AlloateSpace_Handler,
+		},
+		{
+			MethodName: "DeleteSpace",
+			Handler:    _SambaAllocation_DeleteSpace_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "AllocateSpaceConversation",
+			Handler:       _SambaAllocation_AllocateSpaceConversation_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "samba_admin.proto",
 }
 
@@ -144,7 +321,7 @@ var SambaAllocation_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DiskAllocationClient interface {
-	AllocatePartition(ctx context.Context, in *PartitionAllocRequest, opts ...grpc.CallOption) (*PartitionAllocResponse, error)
+	AddDiskToServer(ctx context.Context, in *PartitionAllocRequest, opts ...grpc.CallOption) (*PartitionAllocResponse, error)
 }
 
 type diskAllocationClient struct {
@@ -155,9 +332,9 @@ func NewDiskAllocationClient(cc grpc.ClientConnInterface) DiskAllocationClient {
 	return &diskAllocationClient{cc}
 }
 
-func (c *diskAllocationClient) AllocatePartition(ctx context.Context, in *PartitionAllocRequest, opts ...grpc.CallOption) (*PartitionAllocResponse, error) {
+func (c *diskAllocationClient) AddDiskToServer(ctx context.Context, in *PartitionAllocRequest, opts ...grpc.CallOption) (*PartitionAllocResponse, error) {
 	out := new(PartitionAllocResponse)
-	err := c.cc.Invoke(ctx, "/DiskAllocation/AllocatePartition", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/DiskAllocation/AddDiskToServer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +345,7 @@ func (c *diskAllocationClient) AllocatePartition(ctx context.Context, in *Partit
 // All implementations must embed UnimplementedDiskAllocationServer
 // for forward compatibility
 type DiskAllocationServer interface {
-	AllocatePartition(context.Context, *PartitionAllocRequest) (*PartitionAllocResponse, error)
+	AddDiskToServer(context.Context, *PartitionAllocRequest) (*PartitionAllocResponse, error)
 	mustEmbedUnimplementedDiskAllocationServer()
 }
 
@@ -176,8 +353,8 @@ type DiskAllocationServer interface {
 type UnimplementedDiskAllocationServer struct {
 }
 
-func (UnimplementedDiskAllocationServer) AllocatePartition(context.Context, *PartitionAllocRequest) (*PartitionAllocResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AllocatePartition not implemented")
+func (UnimplementedDiskAllocationServer) AddDiskToServer(context.Context, *PartitionAllocRequest) (*PartitionAllocResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddDiskToServer not implemented")
 }
 func (UnimplementedDiskAllocationServer) mustEmbedUnimplementedDiskAllocationServer() {}
 
@@ -192,20 +369,20 @@ func RegisterDiskAllocationServer(s grpc.ServiceRegistrar, srv DiskAllocationSer
 	s.RegisterService(&DiskAllocation_ServiceDesc, srv)
 }
 
-func _DiskAllocation_AllocatePartition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DiskAllocation_AddDiskToServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PartitionAllocRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DiskAllocationServer).AllocatePartition(ctx, in)
+		return srv.(DiskAllocationServer).AddDiskToServer(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/DiskAllocation/AllocatePartition",
+		FullMethod: "/DiskAllocation/AddDiskToServer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DiskAllocationServer).AllocatePartition(ctx, req.(*PartitionAllocRequest))
+		return srv.(DiskAllocationServer).AddDiskToServer(ctx, req.(*PartitionAllocRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -218,8 +395,8 @@ var DiskAllocation_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*DiskAllocationServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "AllocatePartition",
-			Handler:    _DiskAllocation_AllocatePartition_Handler,
+			MethodName: "AddDiskToServer",
+			Handler:    _DiskAllocation_AddDiskToServer_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -231,6 +408,7 @@ var DiskAllocation_ServiceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SpaceAllocationClient interface {
 	AlloateSpace(ctx context.Context, in *SpaceAllocationRequest, opts ...grpc.CallOption) (*SpaceallocationResponse, error)
+	DeleteSpace(ctx context.Context, in *DeleteSpaceRequest, opts ...grpc.CallOption) (*DeleteSpaceResponse, error)
 }
 
 type spaceAllocationClient struct {
@@ -250,11 +428,21 @@ func (c *spaceAllocationClient) AlloateSpace(ctx context.Context, in *SpaceAlloc
 	return out, nil
 }
 
+func (c *spaceAllocationClient) DeleteSpace(ctx context.Context, in *DeleteSpaceRequest, opts ...grpc.CallOption) (*DeleteSpaceResponse, error) {
+	out := new(DeleteSpaceResponse)
+	err := c.cc.Invoke(ctx, "/SpaceAllocation/DeleteSpace", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SpaceAllocationServer is the server API for SpaceAllocation service.
 // All implementations must embed UnimplementedSpaceAllocationServer
 // for forward compatibility
 type SpaceAllocationServer interface {
 	AlloateSpace(context.Context, *SpaceAllocationRequest) (*SpaceallocationResponse, error)
+	DeleteSpace(context.Context, *DeleteSpaceRequest) (*DeleteSpaceResponse, error)
 	mustEmbedUnimplementedSpaceAllocationServer()
 }
 
@@ -264,6 +452,9 @@ type UnimplementedSpaceAllocationServer struct {
 
 func (UnimplementedSpaceAllocationServer) AlloateSpace(context.Context, *SpaceAllocationRequest) (*SpaceallocationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AlloateSpace not implemented")
+}
+func (UnimplementedSpaceAllocationServer) DeleteSpace(context.Context, *DeleteSpaceRequest) (*DeleteSpaceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSpace not implemented")
 }
 func (UnimplementedSpaceAllocationServer) mustEmbedUnimplementedSpaceAllocationServer() {}
 
@@ -296,6 +487,24 @@ func _SpaceAllocation_AlloateSpace_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SpaceAllocation_DeleteSpace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSpaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SpaceAllocationServer).DeleteSpace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/SpaceAllocation/DeleteSpace",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SpaceAllocationServer).DeleteSpace(ctx, req.(*DeleteSpaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SpaceAllocation_ServiceDesc is the grpc.ServiceDesc for SpaceAllocation service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -306,6 +515,10 @@ var SpaceAllocation_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AlloateSpace",
 			Handler:    _SpaceAllocation_AlloateSpace_Handler,
+		},
+		{
+			MethodName: "DeleteSpace",
+			Handler:    _SpaceAllocation_DeleteSpace_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

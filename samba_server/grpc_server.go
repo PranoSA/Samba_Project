@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
 	"github.com/jackc/pgx/v5"
@@ -12,10 +14,12 @@ import (
 )
 
 type FileSystem struct {
-	Fsid      string
-	Dev       string
-	RoomLeft  int64
-	MouthPath string
+	Fsid           string
+	Dev            string
+	RoomLeft       int64
+	MouthPath      string
+	Lock           *sync.Mutex
+	Transaction_id int32
 }
 
 type FileSystems struct {
@@ -27,11 +31,12 @@ var FS FileSystems
 func (f *FileSystems) ChooseOne(capacity int64) *FileSystem {
 
 	for _, fs := range f.FileSystems {
+		fs.Lock.Lock()
 		if fs.RoomLeft > capacity {
-
 			fs.RoomLeft = fs.RoomLeft - capacity
 			return &fs
 		}
+		fs.Lock.Unlock()
 	}
 	return nil
 }
@@ -50,6 +55,36 @@ type Disk struct {
 	mnt_point  *string
 	capacity   int
 	space_left int
+}
+
+func (s SambaServer) AllocateSpaceConversation(stream proto_samba_management.SambaAllocation_AllocateSpaceConversationServer) error {
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		/**
+		 *
+		 * What We Want To Do Here is Define A start_time, and anything
+		 * We Want to Return
+		 */
+		if in.Sequence == 1 {
+			server := FS.ChooseOne(in.Size)
+			server.Lock.Lock()
+			defer server.Lock.Unlock()
+			// server.Transaction_id = server.Transaction_id
+
+		}
+
+		if in.Sequence == 2 {
+
+		}
+
+	}
 }
 
 func NewSambaServer(pool *pgxpool.Pool, serverid int) *SambaServer {
@@ -74,6 +109,7 @@ func NewSambaServer(pool *pgxpool.Pool, serverid int) *SambaServer {
 	}
 
 	var NextDisk FileSystem = FileSystem{}
+	NextDisk.Lock = &sync.Mutex{}
 
 	var ErrorSystems []FileSystem = []FileSystem{}
 

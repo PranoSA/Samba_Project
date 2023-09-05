@@ -18,7 +18,7 @@ type PostgresAuth struct {
 	hash_option string
 }
 
-func initPostgresAuth(pgx *pgxpool.Pool, hash_option string) (*PostgresAuth, error) {
+func InitPostgresAuth(pgx *pgxpool.Pool, hash_option string) (*PostgresAuth, error) {
 	return &PostgresAuth{
 		pool:        pgx,
 		hash_option: hash_option,
@@ -26,7 +26,7 @@ func initPostgresAuth(pgx *pgxpool.Pool, hash_option string) (*PostgresAuth, err
 
 }
 
-func (pa PostgresAuth) Login(Username string, Password string) string {
+func (pa PostgresAuth) Login(Username string, Password string) bool {
 
 	conn, err := pa.pool.Acquire(context.Background())
 
@@ -60,7 +60,7 @@ func (pa PostgresAuth) Login(Username string, Password string) string {
 	}
 
 	if err == pgx.ErrNoRows {
-		return ""
+		return false
 	}
 
 	var password []byte
@@ -76,9 +76,13 @@ func (pa PostgresAuth) Login(Username string, Password string) string {
 	err = bcrypt.CompareHashAndPassword(password, []byte(password))
 
 	if err != nil {
-		return ""
+		return false
 	}
 
-	return Username
+	return true
 
+}
+
+func (pa PostgresAuth) Signup(Username string, Password string) bool {
+	return true
 }

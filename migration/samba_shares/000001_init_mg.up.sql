@@ -1,6 +1,7 @@
-CREATE TABLE Samba_Server (
+CREATE TABLE Samba_Servers (
     serverid INTEGER PRIMARY KEY,
-    lastip VARCHAR(128)
+    lastip VARCHAR(128),
+    hostname VARCHAR(128)
 );
 
 CREATE TABLE Samba_File_Systems (

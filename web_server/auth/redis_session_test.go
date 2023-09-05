@@ -32,10 +32,10 @@ import (
  * 9. Generate CSRF
  */
 
-var RedisClient *redis.Client = redis.NewClient(&redis.Options{
-	Addr:     "localhost:6379",
+var RedisClient *redis.ClusterClient = redis.NewClusterClient(&redis.ClusterOptions{
+	Addrs:    []string{"localhost:6379"},
 	Password: "", // no password set
-	DB:       0,  // use default DB
+	//DB:       0,  // use default DB
 })
 
 type DummyUserDatastore struct {

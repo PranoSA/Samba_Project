@@ -56,12 +56,30 @@ func (PSM PostgresSpaceModel) CreateSpace(ssr models.SpaceRequest) (*models.Spac
 	 * Process SQL QUERY
 	 *
 	 */
+
 	c := grpc_webclient.GRPCSambaClients[server_id].GRPC_Space_Client
 
-	c.AlloateSpace(context.Background(), &proto_samba_management.SpaceAllocationRequest{
+	res, _ := c.AlloateSpace(context.Background(), &proto_samba_management.SpaceAllocationRequest{
 		Owner: ssr.Owner,
 		Size:  ssr.Megabytes,
 	})
+
+	sql := `
+	INSERT INTO Samba_Spaces (fs_id, owner, size)
+	VALUES(@fs_id, @owner, @size)
+`
+
+	row, err := PSM.pool.Query(context.Background(), sql, pgx.NamedArgs{
+		"fs_id": res.Fsid,
+		"owner": ssr.Owner,
+		"size":  res.Size,
+	})
+
+	if err != nil {
+
+	}
+
+	row.Scan(nil)
 
 	return &models.SpaceResponse{}, nil
 }

@@ -39,7 +39,7 @@ func NewFileSystemRequest(pool *pgxpool.Pool, fs FileSystemRequest, config *tls.
 
 	c := psa.NewDiskAllocationClient(conn)
 
-	res, err := c.AllocatePartition(context.Background(), &psa.PartitionAllocRequest{
+	res, err := c.AddDiskToServer(context.Background(), &psa.PartitionAllocRequest{
 		Device:    fs.Dev,
 		MountPath: fs.Mount_path,
 		AllocSize: fs.Size,

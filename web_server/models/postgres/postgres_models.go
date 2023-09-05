@@ -9,11 +9,13 @@ type PostgresModels struct {
 }
 
 func (PGM PostgresModels) GetServerBySpaceId(space_id string) (int, error) {
+	
 
 	return 1, nil
 }
 
 func (PGM PostgresModels) GetServerByShareId(share_id string) (int, error) {
+	
 
 	return 1, nil
 }

@@ -1,8 +1,6 @@
-#DEFAULT LOCATION -> /etc/samba_sever/web/web_config.yml
-
-CorsOrigins:
-- "localhost:8080"
-- "*"
+Cors_Origins:
+  - "localhost:8080"
+  - "*"
 
 User_Option: "oidc" #"postgres","ldap", "oidc","dynamo"
 Session_Option: "bearer" #"bearer", "simple", "redis"
@@ -36,10 +34,9 @@ SAMBA_SERVERS:
   
 ### Ignored, Only For Example, Remove EXAMPLE_ for actual
 EXAMPLE_LDAP_CONFIG: 
-  TLS_CERT:
-  HOST: 
-  BASE_DN: #BASE DN TO SERACH FROM
-
+  TLS_CERT: ""
+  HOST: ""
+  BASE_DN: ""
 
 EXAMPLE_REDIS_CONFIG:
   CLUSTER_CONNECTION:
@@ -47,7 +44,7 @@ EXAMPLE_REDIS_CONFIG:
     - host: localhost
       port: 6379
     user: "" #PASSWORD THROUGH CLI
-   CA_CERT:
+  CA_CERT:
     "./redis-ca-cert.pem"
   CLIENT_CERT:
     "./redis-client-cert.pem"
@@ -55,8 +52,7 @@ EXAMPLE_REDIS_CONFIG:
     "./redis-client-key.pem"
 
 
-EXAMPLE_DYNAMO_CONFIG:
-
+EXAMPLE_DYNAMO_CONFIG: ""
 
 
 

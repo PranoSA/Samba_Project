@@ -9,7 +9,7 @@
             "program": "./web_server",
             "args": [
                 "--config",
-                "../web_server/config.yml",
+                "../web_server/example_config.yml",
                 "--jwks",
                 "http://172.23.66.158:8080/realms/samba/protocol/openid-connect/certs"
             ]

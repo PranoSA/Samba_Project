@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
+	"log"
 	"os"
 
 	"github.com/PranoSA/samba_share_backend/web_server/auth"
@@ -87,7 +90,7 @@ type ApplicationConfigurations struct {
 var Application ApplicationConfigurations
 
 type YAMLConfig struct {
-	Cors_Origin           []string                    `yaml:"CorsOrigins"`
+	Cors_Origins          []string                    `yaml:"Cors_Origins"`
 	OIDC_Config           map[interface{}]interface{} `yaml:"OIDC_CONFIG"`
 	User_Config_Option    string                      `yaml:"User_Option"`
 	Data_Config_Option    string                      `yaml:"Data_Option"`
@@ -124,7 +127,7 @@ func InitConfig(configPath string) error {
 
 	}
 
-	Application.routes.CORS_Origins = ApplicationYamlConfig.Cors_Origin
+	Application.routes.CORS_Origins = ApplicationYamlConfig.Cors_Origins
 
 	if ApplicationYamlConfig.Session_Config_Option == "oidc" {
 		auth, err := auth.InitOIDCAuthenticatorFromConfig(ApplicationYamlConfig.OIDC_Config)
@@ -143,9 +146,18 @@ func InitConfig(configPath string) error {
 
 	if ApplicationYamlConfig.Data_Config_Option == "postgres" {
 		//Initialize Models Here ...
-		Application.routes.Models.Spaces = postgres_models.PostgresSpaceModel{
-			conn_string := fmt.Sprintf("")
+
+		conn_string := fmt.Sprintf("%s", ApplicationYamlConfig.PG_Config["Port"].(string))
+
+		pool, err := pgxpool.New(context.Background(), conn_string)
+		if err != nil {
+			log.Fatal(err)
 		}
+		Application.routes.Models.Spaces = postgres_models.InitPostgresSpaceModel(pool)
+	}
+
+	if ApplicationYamlConfig.Data_Config_Option != "postgres" {
+		log.Fatal("Only Postgres Config Implemented \n")
 	}
 
 	return nil

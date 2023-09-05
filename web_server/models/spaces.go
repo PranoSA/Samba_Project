@@ -20,5 +20,5 @@ type DeleteSpaceRequest struct {
 type SpaceModel interface {
 	CreateSpace(SpaceRequest) (*SpaceResponse, error)
 	DeleteSpaceById(DeleteSpaceRequest) (*SpaceResponse, error)
-	GetSpaceById(string) (*SpaceResponse, error)
+	GetSpaceById(DeleteSpaceRequest) (*SpaceResponse, error)
 }

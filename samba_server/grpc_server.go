@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -39,6 +38,8 @@ func (f *FileSystems) ChooseOne(capacity int64) *FileSystem {
 
 type SambaServer struct {
 	*proto_samba_management.UnimplementedSambaAllocationServer
+	*proto_samba_management.UnimplementedSpaceAllocationServer
+	*proto_samba_management.UnimplementedDiskAllocationServer
 	pool *pgxpool.Pool
 }
 
@@ -145,16 +146,59 @@ func (s *SambaServer) AddDiskToServer(ctx context.Context, in *proto_samba_manag
 	return &proto_samba_management.PartitionAllocResponse{}, nil
 }
 
-func (s *SambaServer) AllocateSambaShare(ctx context.Context, in *proto_samba_management.RequestShambaShare) (*proto_samba_management.SambaResponse, error) {
-	fmt.Println("Got Request")
+func (s *SambaServer) FindSpacePath(space_id string) (string, string) {
 
-	if f == nil {
-		return &proto_samba_management.SambaResponse{
-			Status: 1,
-			Fsid:   "",
-			Ip:     "",
-		}, errors.New("Couldn't ALlocate FS")
+	sql := `
+	SELECT spaceid, dev, COALESCE(mount_path, ''), fs_id 
+	FROM Samba_Spaces
+	WHERE spaceid = @space_id
+	`
+
+	row, err := s.pool.Query(context.Background(), sql, pgx.NamedArgs{
+		"space_id": space_id,
+	})
+
+	if err != nil {
+		return "", " "
 	}
 
-	return &proto_samba_management.SambaResponse{}, nil
+	var spaceid, dev, mount_path, fs_id string
+	row.Scan(&spaceid, &dev, &mount_path, &fs_id)
+
+	if mount_path == "" {
+		return fmt.Sprintf("/mount/samba_server/%s/%s", fs_id, space_id), fs_id
+	}
+
+	return mount_path, fs_id
+
+}
+
+func (s *SambaServer) AllocateSambaShare(ctx context.Context, in *proto_samba_management.RequestShambaShare) (*proto_samba_management.SambaResponse, error) {
+
+	/**
+	 *
+	 * Find Where Space is and Create New Folder for Spaceid
+	 *
+	 */
+
+	_, fsid := s.FindSpacePath(in.Spaceid) //Find Space Path, Now What ...????
+
+	return &proto_samba_management.SambaResponse{
+		Status: 0,
+		Fsid:   fsid,
+		Ip:     "",
+	}, nil
+}
+
+func (s *SambaServer) AddUserToShare(ctx context.Context, in *proto_samba_management.AddUser) (*proto_samba_management.AddUserResponse, error) {
+
+	/**
+	 *
+	 * Call Commands To Create the Share And Samba Formatting
+	 *
+	 *
+	 *
+	 */
+
+	return &proto_samba_management.AddUserResponse{}, nil
 }

@@ -2,6 +2,7 @@ package postgres_models
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
 	"github.com/PranoSA/samba_share_backend/web_server/grpc_webclient"
@@ -12,6 +13,10 @@ import (
 
 type PostgresSpaceModel struct {
 	pool *pgxpool.Pool
+}
+
+func InitPostgresSpaceModel(pool *pgxpool.Pool) *PostgresSpaceModel {
+	return &PostgresSpaceModel{pool: pool}
 }
 
 func (PGM PostgresSpaceModel) GetServerBySpaceId(space_id string) (int, error) {
@@ -61,18 +66,21 @@ func (PSM PostgresSpaceModel) CreateSpace(ssr models.SpaceRequest) (*models.Spac
 	return &models.SpaceResponse{}, nil
 }
 
-func (PSM PostgresSpaceModel) DeleteSpaceById(id string) (*models.SpaceResponse, error) {
+func (PSM PostgresSpaceModel) DeleteSpaceById(dsr models.DeleteSpaceRequest) (*models.SpaceResponse, error) {
 
-	_, e := PSM.GetServerBySpaceId(id)
+	serverid, e := PSM.GetServerBySpaceId(dsr.Space_id)
 	if e != nil {
 		return nil, e
 	}
 	//Delete Space Here
-	//c := grpc_webclient.GRPCSambaClients[server_id].GRPC_Space_Client
 
+	c := grpc_webclient.GRPCSambaClients[serverid].GRPC_Space_Client
+	fmt.Println(c)
+
+	return &models.SpaceResponse{}, nil
 }
 
-func (PSM PostgresSpaceModel) GetSpaceById(string) (*models.SpaceResponse, error) {
+func (PSM PostgresSpaceModel) GetSpaceById(models.DeleteSpaceRequest) (*models.SpaceResponse, error) {
 
 	return &models.SpaceResponse{}, nil
 }

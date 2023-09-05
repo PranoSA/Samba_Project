@@ -25,6 +25,16 @@ message AddUserResponse {
     int32 status = 2;
 }
 
+/*
+
+    SambaAllocation Service is to 
+    1) Add Samba Allocations To An Already Allocated Space
+    2) Manage Adding Users to the Samba Allocation Server
+
+    This is to be used by the web_client to call the samba_server
+
+*/
+
 service SambaAllocation {
     rpc AllocateSambaShare(RequestShambaShare) returns (SambaResponse){}
     rpc AddUserToShare(AddUser) returns (AddUserResponse){}
@@ -43,8 +53,22 @@ message PartitionAllocResponse {
     string status_message = 2;
 }
 
+/*
+    Disk Allocation Service is Used If You want to ensure consistency When Contacting the Samba_Server
+
+    You Use This To Mount a Device with a Predefined Device and Mount Path, and the file system will ensure that the device
+    is indeed mounted at that mount path.
+
+    Otherwise, the Samba Server Will Automatically Assume its Mounted at 
+    /mount/samba_server/fs_id 
+    And Will Fail In Respone to GRPC calls from the Web Server When Started
+    If this information is incorrect (device -> mount mapping )
+    with detailed logs
+
+*/
+
 service DiskAllocation {
-    rpc AllocatePartition(PartitionAllocRequest) returns (PartitionAllocResponse) {}
+    rpc AddDiskToServer(PartitionAllocRequest) returns (PartitionAllocResponse) {}
 }
 
 
@@ -59,6 +83,23 @@ message SpaceallocationResponse {
     int32 status_code = 2;
     int64 size = 3;
 }
+
+/*
+    SpaceAllocation Service Is Used Between The Web Server and Samba Server 
+
+    If You Want To ALlocate a SPace, It will be randomly assigned to a FSID and mounted at 
+    mount_path({file_system})/{spaceid} 
+
+    It Will Be Granted The Owner and The Size Will Be Requested in # of Megabytes 
+
+    Then a Linux Group called spaceid will be created, where all users
+    (spaceid+user), (spaceid+email) will be added to the linux group
+    with a quota for the size
+
+    Allocate Space ->
+    Delete Space -> 
+
+*/
 
 service SpaceAllocation {
     rpc AlloateSpace(SpaceAllocationRequest) returns (SpaceallocationResponse){}

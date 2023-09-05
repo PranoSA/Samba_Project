@@ -14,6 +14,10 @@ type PostgresShareModel struct {
 	pool *pgxpool.Pool
 }
 
+func InitPostgresShareModel(pool *pgxpool.Pool) *PostgresShareModel {
+	return &PostgresShareModel{pool: pool}
+}
+
 /**
  * type SambaShareModel interface {
 	AddShare(SambaShareResponse) (SambaShareResponse, error)

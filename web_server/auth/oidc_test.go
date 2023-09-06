@@ -37,7 +37,19 @@ import (
  * curl -X POST http://localhost:8080/realms/test/protocol/openid-connect/token -d "client_id=samba" -d "redirect_uri=http:/localhost:8080/callback" -d "grant_type=password" -d "password=prano" -d "username=prano" -d "response_type=oidc" -d "scope=openid" | jq '.id_token'
  */
 
+// Enter Proper Token Here
 var token string = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIwelJHMDdmdUplZ3FtRTBDVDNRdi1yei1ULW5DM0lab05PcjhIY19SRXRFIn0.eyJleHAiOjE2OTM5NDQzOTMsImlhdCI6MTY5Mzk0NDA5MywiYXV0aF90aW1lIjowLCJqdGkiOiI2NDU5ZTU5Zi1mMTM1LTRjYmYtOGRiOC0yODE2NmQ2NzkzYjUiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvcmVhbG1zL3Rlc3QiLCJhdWQiOiJzYW1iYSIsInN1YiI6IjM2NzIwNTY1LTUzNTEtNGJjMC1hMzc2LTgwNTJjYTcwZjRiNSIsInR5cCI6IklEIiwiYXpwIjoic2FtYmEiLCJzZXNzaW9uX3N0YXRlIjoiN2ViNTZkYzUtMjljYS00MjMyLThiNGQtOGI0ZjE2MjczMDU4IiwiYXRfaGFzaCI6InZQQkFGYkR1amlodGdfd3BRTlNPVGciLCJhY3IiOiIxIiwic2lkIjoiN2ViNTZkYzUtMjljYS00MjMyLThiNGQtOGI0ZjE2MjczMDU4IiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJwcmFubyIsImdpdmVuX25hbWUiOiIiLCJmYW1pbHlfbmFtZSI6IiJ9.MB0bYkqQfVyo-2GbUNyRk1K-Dt0GW1PuzNc6rMvVXdlFnp7KlwmyIitHjqbg0jnzvI7ukZnf5i679srF2Bl-qjGNM2dCxqFmEEXYZk4eyvNno5NsjPvpgjQInK1f2FyFhwXMLvyFsBqtzLgHyiWclTxKrvB61aKGW84ShTBVpN6gSSCUKjSF8i8ud5Nnm5kLL3JBIT1JDFQxmeJM_zBu-hqvVVyD-3gK3Zume3CGppL_U4GtDo6lcbDrO8n0MT5VxdTbTZEHI73o3GHZNZRctZ7OdTPBs5zxNepOtI3vpB-x8d-iAClEohCOxxIo8428cIqTNsRFZ-A_LhURbw-XBA"
+
+type OIDCTest struct {
+	Name           string
+	Token          string
+	Issuer         string
+	jwks_url       string
+	Aud            string
+	Expectation    bool
+	Expected_Sub   string
+	Expected_email string
+}
 
 func TestOidcMiddleware(t *testing.T) {
 

@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
+	sambaservermanagement "github.com/PranoSA/samba_share_backend/samba_server/samba_server_management"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -55,6 +56,11 @@ type Disk struct {
 	mnt_point  *string
 	capacity   int
 	space_left int
+}
+
+func (s SambaServer) AlloateSpace(ctx context.Context, in *proto_samba_management.SpaceAllocationRequest) (*proto_samba_management.SpaceallocationResponse, error) {
+
+	return &proto_samba_management.SpaceallocationResponse{}, nil
 }
 
 func (s SambaServer) AllocateSpaceConversation(stream proto_samba_management.SambaAllocation_AllocateSpaceConversationServer) error {
@@ -179,7 +185,25 @@ func (s *SambaServer) AddDiskToServer(ctx context.Context, in *proto_samba_manag
 
 	//Accessible On Mount Point or
 
-	return &proto_samba_management.PartitionAllocResponse{}, nil
+	mount_path := in.MountPath
+	if mount_path == "" {
+		mount_path = fmt.Sprintf("/mount/samba_server/%v", in.Fsid)
+	}
+
+	ok, err := sambaservermanagement.EnsureMount(in.Device, mount_path)
+	if !ok {
+		fmt.Printf("%v", err)
+		return &proto_samba_management.PartitionAllocResponse{
+			StatusCode:    1,
+			StatusMessage: "Wrong Mount Point For Disk",
+		}, err
+	}
+
+	return &proto_samba_management.PartitionAllocResponse{
+		StatusCode: 0,
+
+		StatusMessage: "",
+	}, nil
 }
 
 func (s *SambaServer) FindSpacePath(space_id string) (string, string) {

@@ -1,4 +1,4 @@
-CREATE TABLE Samba_Servers (
+CREATE TABLE Samba_Hosts (
     serverid INTEGER PRIMARY KEY,
     lastip VARCHAR(128),
     hostname VARCHAR(128)

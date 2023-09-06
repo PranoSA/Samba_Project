@@ -73,7 +73,18 @@ func (pa PostgresAuth) Login(Username string, Password string) bool {
 		return nil
 	})
 
-	err = bcrypt.CompareHashAndPassword(password, []byte(password))
+	if pa.hash_option == "bcrypt" {
+
+		err = bcrypt.CompareHashAndPassword(password, []byte(password))
+	}
+
+	if pa.hash_option == "md5" {
+		log.Fatalf("MD5 Hash Option Not Supported Yet")
+	}
+
+	if pa.hash_option == "argon" {
+		log.Fatal("Argon Hash Option Not Supported Yet")
+	}
 
 	if err != nil {
 		return false

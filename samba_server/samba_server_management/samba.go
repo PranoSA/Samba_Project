@@ -1,4 +1,4 @@
-package main
+package sambaservermanagement
 
 import (
 	"errors"
@@ -21,6 +21,37 @@ func getMount(mountdir string) (string, error) {
 
 	return "", nil
 
+}
+
+func EnsureMount(dev string, mount_path string) (bool, error) {
+	dir, err := exec.Command("sh", "-c", fmt.Sprintf("mount | grep -w %s", mount_path)).Output()
+	if err != nil {
+		return false, err //errors.New("Failed TO Execute Command")
+	}
+
+	fmt.Println(string(dir))
+
+	num_lines := strings.Split(string(dir[:]), "\n")
+
+	num_lines = num_lines[0:1]
+
+	if len(num_lines) != 1 {
+		return false, errors.New("More than Expected Mount Points ")
+	}
+
+	fields := strings.Fields(num_lines[0])
+
+	if len(fields) != 6 {
+		return false, errors.New("Output Different Than Expected, expected 6 fields ")
+	}
+
+	device := fields[0]
+
+	if dev == device {
+		return true, nil
+	}
+	deviceString := fmt.Sprintf("Requested%v:got %v", dev, device)
+	return false, errors.New(deviceString)
 }
 
 /*func getMount(mountdir string) (string, error){

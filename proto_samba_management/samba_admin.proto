@@ -63,6 +63,10 @@ message SpaceAllocationMessageResponse {
     string spaceid = 4; 
 }
 
+/**
+    Translate The Communication Between Web Server and Samba Server TO THis Service
+*/
+
 service SambaAllocation {
     rpc AllocateSambaShare(RequestShambaShare) returns (SambaResponse){}
     rpc AddUserToShare(AddUser) returns (AddUserResponse){}

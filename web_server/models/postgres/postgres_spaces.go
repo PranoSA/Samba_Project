@@ -2,6 +2,7 @@ package postgres_models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
@@ -57,7 +58,7 @@ func (PSM PostgresSpaceModel) CreateSpace(ssr models.SpaceRequest) (*models.Spac
 	 *
 	 */
 
-	c := grpc_webclient.GRPCSambaClients[server_id].GRPC_Space_Client
+	c := grpc_webclient.GRPCSambaClients[server_id].Grpc_Samba_Client
 
 	res, _ := c.AlloateSpace(context.Background(), &proto_samba_management.SpaceAllocationRequest{
 		Owner: ssr.Owner,
@@ -92,7 +93,28 @@ func (PSM PostgresSpaceModel) DeleteSpaceById(dsr models.DeleteSpaceRequest) (*m
 	}
 	//Delete Space Here
 
-	c := grpc_webclient.GRPCSambaClients[serverid].GRPC_Space_Client
+	sql := `
+		DELETE FROM Samba_Spaces
+		WHERE spaceid = @spaceid
+		AND owner = @owner
+	`
+
+	row, err := PSM.pool.Query(context.Background(), sql, &pgx.NamedArgs{
+		"spaceid": dsr.Space_id,
+		"owner":   dsr.Owner,
+	})
+
+	if err != nil {
+		return nil, errors.New("Entry Doesn't Exist In Database")
+	}
+
+	defer row.Close()
+
+	c := grpc_webclient.GRPCSambaClients[serverid].Grpc_Samba_Client
+	c.DeleteSpace(context.Background(), &proto_samba_management.DeleteSpaceRequest{
+		Spaceid: dsr.Space_id,
+	})
+
 	fmt.Println(c)
 
 	return &models.SpaceResponse{}, nil
@@ -101,4 +123,9 @@ func (PSM PostgresSpaceModel) DeleteSpaceById(dsr models.DeleteSpaceRequest) (*m
 func (PSM PostgresSpaceModel) GetSpaceById(models.DeleteSpaceRequest) (*models.SpaceResponse, error) {
 
 	return &models.SpaceResponse{}, nil
+}
+
+func (PSM PostgresSpaceModel) GetSpaceByOwner(owner_uuid string) (*[]models.SpaceResponse, error) {
+
+	return &[]models.SpaceResponse{}, nil
 }

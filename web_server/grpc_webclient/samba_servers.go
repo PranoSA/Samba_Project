@@ -9,8 +9,8 @@ import (
 )
 
 type GRPCSambaClient struct {
-	Server_id             int
-	GRPC_Space_Client     proto_samba_management.SpaceAllocationClient
+	Server_id int
+	//GRPC_Space_Client     proto_samba_management.SpaceAllocationClient
 	Grpc_Samba_Client     proto_samba_management.SambaAllocationClient
 	GRPC_Samba_Connection *grpc.ClientConn
 }
@@ -48,11 +48,9 @@ func InitGRPCWebClients(samba []GRPCSambaServer) {
 		}
 
 		client := proto_samba_management.NewSambaAllocationClient(conn)
-		client2 := proto_samba_management.NewSpaceAllocationClient(conn)
 		GRPCSambaClients = append(GRPCSambaClients, GRPCSambaClient{
 			Server_id:             i,
 			Grpc_Samba_Client:     client,
-			GRPC_Space_Client:     client2,
 			GRPC_Samba_Connection: conn,
 		})
 	}

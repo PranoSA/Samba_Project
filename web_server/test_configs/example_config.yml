@@ -20,7 +20,7 @@ PG_CONFIG:
   HOST: "localhost"
   PORT: 5432
   USER: "phil"
-  USER_TABLE: "users" #THIS IS IGNORED 
+  USER_TABLE: "users" #THIS IS IGNORED FOR NOW...
 
 
 SAMBA_SERVERS:

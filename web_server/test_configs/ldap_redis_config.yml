@@ -1,0 +1,27 @@
+Cors_Origins:
+  - "localhost:8080"
+  - "*"
+
+User_Option: "ldap" #"postgres","ldap", "oidc","dynamo"
+Session_Option: "redis" #"bearer", "simple", "redis"
+Data_Option: "postgres" #"postgres", "dynamodb", "etcd", ONly Postgres Supported For Now
+
+PG_CONFIG:
+  HOST: "localhost"
+  PORT: 5432
+  USER: "phil"
+  USER_TABLE: "users" #THIS IS IGNORED FOR NOW...
+
+SAMBA_SERVERS:
+- id: 1
+  host: localhost ##DEFAULT IS 01.samba_servers.pranoSA
+  port: 8080
+  CA_CERT: "./ca-cert.pem" #DEFAULT LOCATION?
+  TLS_KEY: "./client-key.pem"
+  TLS_CERT: "./client-cert.pem"
+
+EXAMPLE_LDAP_CONFIG: 
+  TLS_CERT: ""
+  HOST: "localhost"
+  BASE_DN: ""
+

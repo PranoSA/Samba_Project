@@ -44,7 +44,6 @@ func (f *FileSystems) ChooseOne(capacity int64) *FileSystem {
 
 type SambaServer struct {
 	*proto_samba_management.UnimplementedSambaAllocationServer
-	*proto_samba_management.UnimplementedSpaceAllocationServer
 	*proto_samba_management.UnimplementedDiskAllocationServer
 	pool *pgxpool.Pool
 }

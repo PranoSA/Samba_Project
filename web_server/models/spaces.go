@@ -21,4 +21,5 @@ type SpaceModel interface {
 	CreateSpace(SpaceRequest) (*SpaceResponse, error)
 	DeleteSpaceById(DeleteSpaceRequest) (*SpaceResponse, error)
 	GetSpaceById(DeleteSpaceRequest) (*SpaceResponse, error)
+	GetSpaceByOwner(string) (*[]SpaceResponse, error)
 }

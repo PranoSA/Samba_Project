@@ -6,6 +6,7 @@ import (
 	"github.com/PranoSA/samba_share_backend/web_server/auth"
 	"github.com/PranoSA/samba_share_backend/web_server/models"
 	"github.com/julienschmidt/httprouter"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type BadRequestResponse []struct {
@@ -52,6 +53,10 @@ func (approutes AppRouter) CorsMiddleware(w *http.ResponseWriter, r http.Request
 	}
 }
 
+func swaggerHandler(res http.ResponseWriter, req *http.Request, p httprouter.Params) {
+	httpSwagger.WrapHandler(res, req)
+}
+
 func NewAppRouter(approutes AppRouter) *httprouter.Router {
 
 	router := httprouter.New()
@@ -84,6 +89,8 @@ func NewAppRouter(approutes AppRouter) *httprouter.Router {
 	router.POST("/spaces", middleware(approutes.CreateSpace))
 
 	router.DELETE("/spaces/:spaceid", middleware(approutes.DeleteSpace))
+
+	router.GET("/doc/:any", swaggerHandler)
 
 	// To Be Implemented -> Compute Routes
 	//

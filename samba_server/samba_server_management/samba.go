@@ -3,6 +3,8 @@ package sambaservermanagement
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -52,6 +54,29 @@ func EnsureMount(dev string, mount_path string) (bool, error) {
 	}
 	deviceString := fmt.Sprintf("Requested%v:got %v", dev, device)
 	return false, errors.New(deviceString)
+}
+
+/**
+ * Space_mount_path acts as the moutn point all samba shares in the space will mount
+ * shareid is used to mount the folder at space_mount_path/shareid
+ * owner and password are used by smbpasswd to create samba share
+ * spaceid is also used to identify Linux Users Groups In THe Space
+ * And shareid is Used to identify users as within the share as well
+ */
+func CreateSambaShare(space_mount_path string, shareid string, owner string, password string, spaceid string) {
+
+	os.Mkdir(space_mount_path+"/"+shareid, 0770)
+
+	_, err := exec.Command("sh", "./create_samba.sh", space_mount_path, shareid, owner, password, spaceid).Output()
+
+	if err == nil {
+		log.Fatalf("Failed TO ALlocat Samba : %v ", err)
+	}
+
+}
+
+func AddUserToShareId(user string, password string, shareid string) {
+
 }
 
 /*func getMount(mountdir string) (string, error){

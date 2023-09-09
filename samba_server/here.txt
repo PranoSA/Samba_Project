@@ -1,0 +1,9 @@
+[bober]
+    path = /mount/samba_server/1/bober
+    browseable = yes
+    read only = no
+    force create mode = 0777
+    force directory mode = 0777
+    create mask = 0777
+    directory mask = 0777
+    valid users = wadlers-gmail.com-bober wadlers-gmail.com wadlers-gmail.com root root root root root root pcadler-gmail.com-bober

@@ -1,4 +1,4 @@
-package main
+package sambaservermanagement
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
-	sambaservermanagement "github.com/PranoSA/samba_share_backend/samba_server/samba_server_management"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -38,6 +37,8 @@ func (f *FileSystems) ChooseOne(capacity int64) *FileSystem {
 			return &fs
 		}
 		fs.Lock.Unlock()
+
+		InitFromDiskLabels(f.FileSystems)
 	}
 	return nil
 }
@@ -189,7 +190,7 @@ func (s *SambaServer) AddDiskToServer(ctx context.Context, in *proto_samba_manag
 		mount_path = fmt.Sprintf("/mount/samba_server/%v", in.Fsid)
 	}
 
-	ok, err := sambaservermanagement.EnsureMount(in.Device, mount_path)
+	ok, err := EnsureMount(in.Device, mount_path)
 	if !ok {
 		fmt.Printf("%v", err)
 		return &proto_samba_management.PartitionAllocResponse{

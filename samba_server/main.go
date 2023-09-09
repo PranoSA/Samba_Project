@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
+	sambaservermanagement "github.com/PranoSA/samba_share_backend/samba_server/samba_server_management"
 	"google.golang.org/grpc"
 )
 
@@ -17,7 +18,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	s := SambaServer{}
+	s := sambaservermanagement.SambaServer{}
 
 	proto_samba_management.RegisterSambaAllocationServer(grpcServer, &s)
 

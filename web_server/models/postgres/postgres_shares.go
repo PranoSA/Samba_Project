@@ -36,6 +36,8 @@ func (PGM PostgresShareModel) CreateInvite(sir models.ShareInviteRequest) (*mode
 	sql := `
 	INSERT INTO Samba_Invites(share_id, owner, time_created, time_expired, invite_code, hash_code)
 	VALUES(@share_id,@owner,@time_created,@time_expired,@invite_code,@hash_code)
+	JOIN Samba_Shares
+	WHERE Samba_Shares.Owner = @share_Owner
 	RETURNING inviteid
 	`
 
@@ -43,20 +45,56 @@ func (PGM PostgresShareModel) CreateInvite(sir models.ShareInviteRequest) (*mode
 
 	defer cancel()
 
-	row, err := PGM.pool.Query(ctx, sql, pgx.NamedArgs{
+	txid, err := PGM.pool.BeginTx(ctx, pgx.TxOptions{
+		IsoLevel: pgx.ReadCommitted,
+	})
+
+	if err != nil {
+	}
+
+	sqlEnsureOwner := `
+	SELECT shareid
+	FROM Samba_Shares
+	WHERE owner = @owner AND shareid = @shareid
+	`
+
+	_, err = txid.Query(ctx, sqlEnsureOwner, pgx.NamedArgs{
+		"owner":   sir.Email,
+		"shareid": sir.Shareid,
+	})
+
+	if err == pgx.ErrNoRows {
+		return nil, models.ErrorEntryDoesNotExist
+	}
+
+	if err != nil {
+		return nil, models.ErrorDatabaseTImeout
+	}
+
+	row, err := txid.Query(ctx, sql, pgx.NamedArgs{
 		"share_id":     sir.Shareid,
 		"owner":        sir.Email,
 		"time_created": time.Now(),
 		"time_expired": expir,
 		"invite_code":  invite,
 		"hash_code":    hash,
+		"share_owner":  sir.Email,
 	})
+
 	if err == context.DeadlineExceeded {
+		txid.Rollback(ctx)
 		return nil, models.ErrorDatabaseTImeout
+	}
+
+	if err != nil {
+		txid.Rollback(ctx)
+		return nil, models.ErrorEntryDoesNotExist
 	}
 
 	var inviteid string
 	row.Scan(&inviteid)
+
+	txid.Commit(ctx)
 
 	return &models.ShareInviteResponse{
 		Email:       sir.Email,

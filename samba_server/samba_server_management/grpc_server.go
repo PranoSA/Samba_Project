@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
 	"github.com/jackc/pgx/v5"
@@ -60,7 +61,48 @@ type Disk struct {
 
 func (s SambaServer) AlloateSpace(ctx context.Context, in *proto_samba_management.SpaceAllocationRequest) (*proto_samba_management.SpaceallocationResponse, error) {
 
-	return &proto_samba_management.SpaceallocationResponse{}, nil
+	/**
+	 *
+	 * Here We Want to DO The SQL Query Instead of On the PG Server
+	 *
+	 */
+
+	fs := FS.ChooseOne(in.Size)
+
+	sql := `
+		INSERT INTO Samba_Spaces (fs_id, owner, size, time_created)
+		VALUES (@fs_id, @owner, @size, @time_created)
+	`
+
+	row, err := s.pool.Query(context.Background(), sql, pgx.NamedArgs{
+		"fs_id":        fs.Fsid,
+		"owner":        in.Owner,
+		"size":         in.Size,
+		"time_created": time.Now(),
+	})
+
+	if err != nil {
+		return &proto_samba_management.SpaceallocationResponse{
+			StatusCode: 1,
+		}, nil
+	}
+
+	if fs == nil {
+		return &proto_samba_management.SpaceallocationResponse{
+			Spaceid:    "",
+			StatusCode: 2,
+		}, nil
+	}
+
+	var fs_id string
+	row.Scan(&fs_id)
+
+	return &proto_samba_management.SpaceallocationResponse{
+		Spaceid:    in.Spaceid,
+		StatusCode: 0,
+		Size:       in.Size,
+		Fsid:       fs_id,
+	}, nil
 }
 
 func (s SambaServer) AllocateSpaceConversation(stream proto_samba_management.SambaAllocation_AllocateSpaceConversationServer) error {

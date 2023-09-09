@@ -20,6 +20,8 @@ import (
 
 type SpaceTestStub struct{} //models.SpaceModel
 
+//var _ models.SpaceModel = SpaceTestStub{}
+
 /**
  * Space Model Data Points
  *
@@ -59,7 +61,42 @@ func (stb SpaceTestStub) CreateSpace(sr models.SpaceRequest) (*models.SpaceRespo
 	return nil, errors.New("Failed To Create")
 }
 
-func (stb SpaceTestStub) GetSpacesByOwner() {}
+func (stb SpaceTestStub) GetSpacesByOwner(sr models.SpaceResponse) ([]models.SpaceResponse, error) {
+	var spaces []models.SpaceResponse
+
+	for _, s := range InitTestSpaceResponses {
+		if s.Email == sr.Owner {
+			spaces = append(spaces, s)
+		}
+	}
+
+	return spaces, nil
+}
+
+func (stb SpaceTestStub) DeleteSpaceById(dsr models.DeleteSpaceRequest) (*models.SpaceResponse, error) {
+
+	var Response models.SpaceResponse
+	var found int = 0
+
+	for i, _ := range InitTestSpaceResponses {
+		if InitTestSpaceResponses[i].Spaceid == dsr.Space_id {
+			if InitTestSpaceResponses[i].Email != dsr.Owner {
+				return nil, models.ErrorEntryDoesNotExist
+			}
+			Response = InitTestSpaceResponses[i]
+			InitTestSpaceResponses = append(InitTestSpaceResponses[0:i], InitTestSpaceResponses[i+1:]...)
+			found = i
+		}
+	}
+	if found == 0 {
+		return nil, models.ErrorEntryDoesNotExist
+	}
+	return &Response, nil
+}
+
+//func (stm SpaceTestStub) GetSpaceById(in models.DeleteSpaceRequest) (*models.SpaceResponse, error) {}
+
+//func (stb SpaceTestStub)
 
 /**
  *

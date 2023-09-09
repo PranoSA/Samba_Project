@@ -36,20 +36,30 @@ func AuthMiddleware(w http.ResponseWriter, r *http.Request, pa httprouter.Params
  *
  */
 
-func (approutes AppRouter) CorsMiddleware(w *http.ResponseWriter, r http.Request) {
-	if r.Header.Get("origin") == "" || r.Header.Get("origin") == r.Header.Get("host") {
-		return
-	}
+func (approutes AppRouter) CorsMiddleware(next httprouter.Handle) func(http.ResponseWriter, *http.Request, httprouter.Params) {
 
-	if approutes.CORS_Origins[0] == "*" {
-		(*w).Header().Set("Access Controller-Allow-Origin", "*")
-	}
-
-	for i, v := range approutes.CORS_Origins {
-		if r.Header.Get("Origin") == approutes.CORS_Origins[i] {
-
-			(*w).Header().Set("Access-Control-Allow-Origin", v)
+	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+		if r.Header.Get("origin") == "" || r.Header.Get("origin") == r.Header.Get("host") {
+			next(w, r, p)
+			return
 		}
+
+		if approutes.CORS_Origins[0] == "*" {
+			(w).Header().Set("Access Controller-Allow-Origin", "*")
+			next(w, r, p)
+			return
+		}
+
+		for i, v := range approutes.CORS_Origins {
+			if r.Header.Get("Origin") == approutes.CORS_Origins[i] {
+
+				(w).Header().Set("Access-Control-Allow-Origin", v)
+				next(w, r, p)
+				return
+			}
+		}
+
+		next(w, r, p)
 	}
 }
 

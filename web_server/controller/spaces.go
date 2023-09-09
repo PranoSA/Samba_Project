@@ -58,5 +58,20 @@ func (ar AppRouter) CreateSpace(w http.ResponseWriter, r *http.Request, pa httpr
 }
 
 func (ar AppRouter) DeleteSpace(w http.ResponseWriter, r *http.Request, ap httprouter.Params) {
+	spaceid := ap.ByName("spaceid")
+	email := r.Context().Value("Authorization")
+	if email == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
+	res, err := ar.Models.Spaces.GetSpaceById(models.DeleteSpaceRequest{
+		Owner:    email.(string),
+		Space_id: spaceid,
+	})
+	if err == models.ErrorEntryDoesNotExist {
+		w.WriteHeader(http.StatusForbidden)
+	}
+
+	json.NewEncoder(w).Encode(res)
 }

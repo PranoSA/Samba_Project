@@ -7,7 +7,7 @@ type SpaceRequest struct {
 
 type SpaceResponse struct {
 	Owner     string
-	Spaceid   int64
+	Spaceid   string
 	Email     string
 	Megabytes int64
 }

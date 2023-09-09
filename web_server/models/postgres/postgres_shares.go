@@ -2,6 +2,7 @@ package postgres_models
 
 import (
 	"context"
+	"time"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
 	"github.com/PranoSA/samba_share_backend/web_server/grpc_webclient"
@@ -27,6 +28,43 @@ func InitPostgresShareModel(pool *pgxpool.Pool) *PostgresShareModel {
 }
 
 */
+
+func (PGM PostgresShareModel) CreateInvite(sir models.ShareInviteRequest) (*models.ShareInviteResponse, error) {
+
+	invite, hash, expir := models.GenInvite()
+
+	sql := `
+	INSERT INTO Samba_Invites(share_id, owner, time_created, time_expired, invite_code, hash_code)
+	VALUES(@share_id,@owner,@time_created,@time_expired,@invite_code,@hash_code)
+	RETURNING inviteid
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+
+	defer cancel()
+
+	row, err := PGM.pool.Query(ctx, sql, pgx.NamedArgs{
+		"share_id":     sir.Shareid,
+		"owner":        sir.Email,
+		"time_created": time.Now(),
+		"time_expired": expir,
+		"invite_code":  invite,
+		"hash_code":    hash,
+	})
+	if err == context.DeadlineExceeded {
+		return nil, models.ErrorDatabaseTImeout
+	}
+
+	var inviteid string
+	row.Scan(&inviteid)
+
+	return &models.ShareInviteResponse{
+		Email:       sir.Email,
+		Inviteid:    inviteid,
+		Invite_code: string(hash), // This will be utter rubbish
+	}, nil
+
+}
 
 func (PGM PostgresShareModel) GetServerBySpaceId(space_id string) (int, error) {
 

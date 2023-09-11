@@ -75,7 +75,15 @@ func CreateSambaShare(space_mount_path string, shareid string, owner string, pas
 
 }
 
-func AddUserToShareId(user string, password string, shareid string) {
+func AddUserToShareId(user string, password string, shareid string, spaceid string) {
+
+	sambaname := strings.Replace(user, "@", "-", -1)
+
+	_, err := exec.Command("sh", "./add_user_samba.sh", sambaname, password, shareid, spaceid).Output()
+
+	if err != nil {
+
+	}
 
 }
 

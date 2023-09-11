@@ -16,7 +16,7 @@ message SambaResponse {
 
 message AddUser{
     string user = 1;
-    int64 share_id = 2;
+    string share_id = 2;
     string password = 3;
 }
 

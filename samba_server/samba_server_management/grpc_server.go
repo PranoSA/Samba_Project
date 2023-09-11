@@ -138,13 +138,24 @@ func (s SambaServer) AllocateSpaceConversation(stream proto_samba_management.Sam
 func NewSambaServer(pool *pgxpool.Pool, serverid int) *SambaServer {
 
 	sql := `
-	SELECT fsid, device, COALESCE(mnt_point,''), Samba_File_Systems.capacity - SUM(Samba_Spaces.alloc_size)
+	SELECT fsid, server_id, device, mnt_point, capacity, capacity -  COALESCE((
+		SELECT SUM (Samba_Spaces.alloc_size)
+		FROM Samba_Spaces
+		WHERE Samba_Spaces.fs_id = Samba_File_Systems.fsid
+		),0) AS space_left
+		FROM Samba_File_Systems
+		WHERE server_id = @server;
+	`
+
+	/**
+	 * 	SELECT fsid, device, COALESCE(mnt_point,''), Samba_File_Systems.capacity - SUM(Samba_Spaces.alloc_size)
 	FROM Samba_File_Systems
 	JOIN Samba_Spaces
 	ON Samba_Spaces.fs_id = Samba_File_Systems.fsid
-	WHERE Samba_File_Systems.server_id = @server
+	WHERE Samba_File_Systems.server_id = 1
 	GROUP BY Samba_File_Systems.fsid
-	`
+	 *
+	*/
 
 	disksrows, query_err := pool.Query(context.Background(), sql, pgx.NamedArgs{
 		"server": serverid,
@@ -298,9 +309,27 @@ func (s *SambaServer) AddUserToShare(ctx context.Context, in *proto_samba_manage
 	 *
 	 * Call Commands To Create the Share And Samba Formatting
 	 *
-	 *
+	 * To Call The Script I Need the ...
+	 * Shareid and Spaceid:::
 	 *
 	 */
+
+	user := in.User
+	password := in.Password
+	shareid := in.ShareId
+
+	row, err := s.pool.Query(context.Background(), "SELECT space_id FROM Samba_Shares where shareid=@shareid", pgx.NamedArgs{
+		"shareid": shareid,
+	})
+
+	if err != nil {
+
+	}
+
+	var spaceid string
+	row.Scan(&spaceid)
+
+	AddUserToShareId(user, password, shareid, spaceid)
 
 	return &proto_samba_management.AddUserResponse{}, nil
 }

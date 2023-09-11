@@ -1,4 +1,4 @@
-CREATE TABLE Samba_Hosts (
+CREATE TABLE IF NOT EXISTS Samba_Servers (
     serverid INTEGER PRIMARY KEY,
     lastip VARCHAR(128),
     hostname VARCHAR(128)
@@ -6,7 +6,7 @@ CREATE TABLE Samba_Hosts (
 
 CREATE TABLE Samba_File_Systems (
     fsid uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    server_id INTEGER NOT NULL REFERENCES Samba_Server(serverid),
+    server_id INTEGER NOT NULL REFERENCES Samba_Servers(serverid),
     device VARCHAR(128),
     mnt_point VARCHAR(255),
     capacity INTEGER NOT NULL

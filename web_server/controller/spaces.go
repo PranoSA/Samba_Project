@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/PranoSA/samba_share_backend/web_server/models"
 	"github.com/julienschmidt/httprouter"
 )
+
+type CreateSpaceRequest struct {
+	Megabytes int64
+}
 
 func (ar AppRouter) CreateSpace(w http.ResponseWriter, r *http.Request, pa httprouter.Params) {
 
@@ -20,7 +23,11 @@ func (ar AppRouter) CreateSpace(w http.ResponseWriter, r *http.Request, pa httpr
 		log.Fatal("Invalid Type Casting at Spaces.go /Create Space")
 	}
 
-	megabytes, e := strconv.Atoi(r.URL.Query().Get("megabytes"))
+	var request CreateSpaceRequest
+
+	e := json.NewDecoder(r.Body).Decode(&request)
+
+	//megabytes, e := strconv.Atoi(r.URL.Query().Get("megabytes"))
 
 	if e != nil {
 		json.NewEncoder(w)
@@ -28,6 +35,8 @@ func (ar AppRouter) CreateSpace(w http.ResponseWriter, r *http.Request, pa httpr
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	megabytes := request.Megabytes
 
 	if megabytes < 10 || megabytes > 100_000 {
 

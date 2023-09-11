@@ -69,10 +69,14 @@ func main() {
 
 	InitConfig(configPath)
 
+	Application.port = 8000
+	Application.addr = "0.0.0.0"
+
 	srv := http.Server{
 		Addr:      fmt.Sprintf("%s:%d", Application.addr, Application.port),
 		TLSConfig: Application.https_tls_config,
 		ErrorLog:  log.Default(),
+		Handler:   Application.routes.NewAppRouter(),
 	}
 
 	log.Fatal(srv.ListenAndServe())

@@ -6,3 +6,8 @@ out
 *.csr
 *.pub
 web_server/web_server
+.m4s
+.mp4
+test_subjects
+test_subjects/*
+random.png

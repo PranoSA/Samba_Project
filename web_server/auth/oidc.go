@@ -125,7 +125,7 @@ func (oidc OIDCAuthenticator) AuthenticationMiddleWare(next httprouter.Handle) h
 
 		//user, _ := oidc.userModel.GetUserByIDWithCreate(useremail)
 
-		ctx := context.WithValue(r.Context(), "Authentication", useremail)
+		ctx := context.WithValue(r.Context(), "Authorization", useremail)
 
 		r = r.WithContext(ctx)
 

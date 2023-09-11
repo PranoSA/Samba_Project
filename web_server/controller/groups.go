@@ -44,7 +44,7 @@ func (a AppRouter) DeleteShare(w http.ResponseWriter, r *http.Request, pa httpro
 }
 
 type CreateShareBody struct {
-	Name string `json:body"` //Ignored For Now ....
+	Name string `json:"Body"` //Ignored For Now ....
 }
 
 func (a AppRouter) CreateShare(w http.ResponseWriter, r *http.Request, pa httprouter.Params) {

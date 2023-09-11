@@ -67,7 +67,7 @@ func swaggerHandler(res http.ResponseWriter, req *http.Request, p httprouter.Par
 	httpSwagger.WrapHandler(res, req)
 }
 
-func NewAppRouter(approutes AppRouter) *httprouter.Router {
+func (approutes AppRouter) NewAppRouter() *httprouter.Router {
 
 	router := httprouter.New()
 
@@ -119,6 +119,16 @@ func NewAppRouter(approutes AppRouter) *httprouter.Router {
 	 *
 	 *
 	 */
+
+	/**
+	 *
+	 * Auxillary Functionality
+	 *
+	 */
+
+	// router.POST("/space/:spaceid/publications")
+
+	// router.POST("/space/:spaceid/snapshots")
 
 	return router
 }

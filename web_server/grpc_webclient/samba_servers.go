@@ -15,6 +15,12 @@ type GRPCSambaClient struct {
 	GRPC_Samba_Connection *grpc.ClientConn
 }
 
+/**
+ *
+ * Need To Init These Later
+ *
+ */
+
 var Next_id int = 0
 var IncrMutex sync.Mutex = sync.Mutex{}
 var GRPCSambaClients []GRPCSambaClient
@@ -32,9 +38,11 @@ func GetAndUpdateNextId() int {
 }
 
 type GRPCSambaServer struct {
+	Id     int
 	Host   string
 	Ip     string
 	Use_IP bool
+	Port   int
 }
 
 func InitGRPCWebClients(samba []GRPCSambaServer) {

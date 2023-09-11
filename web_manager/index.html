@@ -1,0 +1,17 @@
+<video id="videoPlayer" autoplay="autoplay" controls="controls" width="960" height="540">
+</video>
+
+<p> POOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOo</p>
+
+<!-- dash-player - no browser is natively playing DASH -->
+<script src="http://cdn.dashjs.org/v3.1.0/dash.all.min.js"></script>
+<script>
+
+    /* initialize the dash.js player in the #videoPlayer element */
+    (function () {
+        let url = "dash.mpd";
+        player = dashjs.MediaPlayer().create();
+        player.initialize(document.querySelector("#videoPlayer"), url, false);
+    })();
+
+</script>

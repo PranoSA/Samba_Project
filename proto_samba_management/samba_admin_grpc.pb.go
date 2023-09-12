@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SambaAllocationClient interface {
-	AllocateSambaShare(ctx context.Context, in *RequestShambaShare, opts ...grpc.CallOption) (*SambaResponse, error)
+	AllocateSambaShare(ctx context.Context, in *RequestSambaShare, opts ...grpc.CallOption) (*SambaResponse, error)
 	AddUserToShare(ctx context.Context, in *AddUser, opts ...grpc.CallOption) (*AddUserResponse, error)
 	DeleteShare(ctx context.Context, in *DeleteShareRequest, opts ...grpc.CallOption) (*DeleteShareResponse, error)
 	AlloateSpace(ctx context.Context, in *SpaceAllocationRequest, opts ...grpc.CallOption) (*SpaceallocationResponse, error)
@@ -38,7 +38,7 @@ func NewSambaAllocationClient(cc grpc.ClientConnInterface) SambaAllocationClient
 	return &sambaAllocationClient{cc}
 }
 
-func (c *sambaAllocationClient) AllocateSambaShare(ctx context.Context, in *RequestShambaShare, opts ...grpc.CallOption) (*SambaResponse, error) {
+func (c *sambaAllocationClient) AllocateSambaShare(ctx context.Context, in *RequestSambaShare, opts ...grpc.CallOption) (*SambaResponse, error) {
 	out := new(SambaResponse)
 	err := c.cc.Invoke(ctx, "/SambaAllocation/AllocateSambaShare", in, out, opts...)
 	if err != nil {
@@ -118,7 +118,7 @@ func (x *sambaAllocationAllocateSpaceConversationClient) Recv() (*SpaceAllocatio
 // All implementations must embed UnimplementedSambaAllocationServer
 // for forward compatibility
 type SambaAllocationServer interface {
-	AllocateSambaShare(context.Context, *RequestShambaShare) (*SambaResponse, error)
+	AllocateSambaShare(context.Context, *RequestSambaShare) (*SambaResponse, error)
 	AddUserToShare(context.Context, *AddUser) (*AddUserResponse, error)
 	DeleteShare(context.Context, *DeleteShareRequest) (*DeleteShareResponse, error)
 	AlloateSpace(context.Context, *SpaceAllocationRequest) (*SpaceallocationResponse, error)
@@ -131,7 +131,7 @@ type SambaAllocationServer interface {
 type UnimplementedSambaAllocationServer struct {
 }
 
-func (UnimplementedSambaAllocationServer) AllocateSambaShare(context.Context, *RequestShambaShare) (*SambaResponse, error) {
+func (UnimplementedSambaAllocationServer) AllocateSambaShare(context.Context, *RequestSambaShare) (*SambaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AllocateSambaShare not implemented")
 }
 func (UnimplementedSambaAllocationServer) AddUserToShare(context.Context, *AddUser) (*AddUserResponse, error) {
@@ -163,7 +163,7 @@ func RegisterSambaAllocationServer(s grpc.ServiceRegistrar, srv SambaAllocationS
 }
 
 func _SambaAllocation_AllocateSambaShare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestShambaShare)
+	in := new(RequestSambaShare)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func _SambaAllocation_AllocateSambaShare_Handler(srv interface{}, ctx context.Co
 		FullMethod: "/SambaAllocation/AllocateSambaShare",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SambaAllocationServer).AllocateSambaShare(ctx, req.(*RequestShambaShare))
+		return srv.(SambaAllocationServer).AllocateSambaShare(ctx, req.(*RequestSambaShare))
 	}
 	return interceptor(ctx, in, info, handler)
 }

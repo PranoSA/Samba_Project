@@ -2,9 +2,11 @@ syntax = "proto3";
 
 option go_package = "github.com/PranoSA/samba_share_backend/proto_samba_management";
 
-message RequestShambaShare {
+message RequestSambaShare {
     string owner = 1;
     string spaceid = 2;
+    string password = 3;
+    string shareid = 4;
 }
 
 message SambaResponse {
@@ -16,7 +18,7 @@ message SambaResponse {
 
 message AddUser{
     string user = 1;
-    int64 share_id = 2;
+    string share_id = 2;
     string password = 3;
 }
 
@@ -68,7 +70,7 @@ message SpaceAllocationMessageResponse {
 */
 
 service SambaAllocation {
-    rpc AllocateSambaShare(RequestShambaShare) returns (SambaResponse){}
+    rpc AllocateSambaShare(RequestSambaShare) returns (SambaResponse){}
     rpc AddUserToShare(AddUser) returns (AddUserResponse){}
     rpc DeleteShare(DeleteShareRequest) returns (DeleteShareResponse) {}
     rpc AlloateSpace(SpaceAllocationRequest) returns (SpaceallocationResponse){}

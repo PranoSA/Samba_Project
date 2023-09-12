@@ -44,7 +44,7 @@ func (a AppRouter) DeleteShare(w http.ResponseWriter, r *http.Request, pa httpro
 }
 
 type CreateShareBody struct {
-	Name string `json:"Body"` //Ignored For Now ....
+	Password string //Ignored For Now ....
 }
 
 func (a AppRouter) CreateShare(w http.ResponseWriter, r *http.Request, pa httprouter.Params) {
@@ -54,10 +54,16 @@ func (a AppRouter) CreateShare(w http.ResponseWriter, r *http.Request, pa httpro
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
+	spaceid := pa.ByName("spaceid")
+
+	var body CreateShareBody
+
+	json.NewDecoder(r.Body).Decode(&body)
 	//It will want Space ID Instead
-	res, err := a.Models.Samba_Shares.AddShare(models.SambaShareResponse{
-		Email:   email.(string),
-		Shareid: "",
+	res, err := a.Models.Samba_Shares.AddShare(models.SambaShareRequest{
+		Email:    email.(string),
+		Spaceid:  spaceid,
+		Password: body.Password,
 	})
 
 	if err != nil {

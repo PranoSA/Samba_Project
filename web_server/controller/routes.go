@@ -88,13 +88,15 @@ func (approutes AppRouter) NewAppRouter() *httprouter.Router {
 	//Group & Share Rotes
 	router.DELETE("/group/:shareid", middleware(approutes.DeleteShare)) //Only Owner Can DO THis
 
-	router.POST("/group", middleware(approutes.CreateShare))
+	router.POST("/space/:spaceid/group", middleware(approutes.CreateShare))
 
-	router.POST("/group/:groupid", middleware(approutes.InviteUsers)) //Only Owners Can DO This
+	router.POST("/group/:shareid", middleware(approutes.InviteUsers)) //Only Owners Can DO This
 
 	router.POST("/invite/:inviteid", middleware(approutes.AcceptInvite)) //Only Users with Invite ID Can Do THis
 
 	// Space Routes
+
+	router.GET("/spaces", middleware(approutes.GetMySpaces))
 
 	router.POST("/spaces", middleware(approutes.CreateSpace))
 

@@ -60,6 +60,7 @@ func (ar AppRouter) CreateSpace(w http.ResponseWriter, r *http.Request, pa httpr
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadGateway)
+		return
 	}
 
 	json.NewEncoder(w).Encode(&res)
@@ -82,5 +83,16 @@ func (ar AppRouter) DeleteSpace(w http.ResponseWriter, r *http.Request, ap httpr
 		w.WriteHeader(http.StatusForbidden)
 	}
 
+	json.NewEncoder(w).Encode(res)
+}
+
+func (ar AppRouter) GetMySpaces(w http.ResponseWriter, r *http.Request, ap httprouter.Params) {
+
+	email := r.Context().Value("Authorization")
+	res, err := ar.Models.Spaces.GetSpaceByOwner(email.(string))
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
 	json.NewEncoder(w).Encode(res)
 }

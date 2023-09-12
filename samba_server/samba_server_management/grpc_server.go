@@ -70,18 +70,19 @@ func (s SambaServer) AlloateSpace(ctx context.Context, in *proto_samba_managemen
 	fs := FS.ChooseOne(in.Size)
 
 	sql := `
-		INSERT INTO Samba_Spaces (fs_id, owner, size, time_created)
+		INSERT INTO Samba_Spaces (fs_id, owner, alloc_size, time_created)
 		VALUES (@fs_id, @owner, @size, @time_created)
+		RETURNING fs_id, owner
 	`
 
-	row, err := s.pool.Query(context.Background(), sql, pgx.NamedArgs{
+	row := s.pool.QueryRow(context.Background(), sql, pgx.NamedArgs{
 		"fs_id":        fs.Fsid,
 		"owner":        in.Owner,
 		"size":         in.Size,
 		"time_created": time.Now(),
 	})
 
-	if err != nil {
+	/*if row. {
 		return &proto_samba_management.SpaceallocationResponse{
 			StatusCode: 1,
 		}, nil
@@ -93,9 +94,18 @@ func (s SambaServer) AlloateSpace(ctx context.Context, in *proto_samba_managemen
 			StatusCode: 2,
 		}, nil
 	}
+	*/
 
 	var fs_id string
-	row.Scan(&fs_id)
+	var e error
+	row.Scan(&fs_id, &e)
+
+	if fs_id == "" {
+		return &proto_samba_management.SpaceallocationResponse{
+			StatusCode: 1,
+		}, nil
+	}
+	_ = os.Mkdir(fs.MouthPath+"/"+fs_id, 0771)
 
 	return &proto_samba_management.SpaceallocationResponse{
 		Spaceid:    in.Spaceid,
@@ -138,13 +148,24 @@ func (s SambaServer) AllocateSpaceConversation(stream proto_samba_management.Sam
 func NewSambaServer(pool *pgxpool.Pool, serverid int) *SambaServer {
 
 	sql := `
-	SELECT fsid, device, COALESCE(mnt_point,''), Samba_File_Systems.capacity - SUM(Samba_Spaces.alloc_size)
+	SELECT fsid, device, mnt_point, capacity -  COALESCE((
+		SELECT SUM (Samba_Spaces.alloc_size)
+		FROM Samba_Spaces
+		WHERE Samba_Spaces.fs_id = Samba_File_Systems.fsid
+		),0) AS space_left
+		FROM Samba_File_Systems
+		WHERE server_id = @server;
+	`
+
+	/**
+	 * 	SELECT fsid, device, COALESCE(mnt_point,''), Samba_File_Systems.capacity - SUM(Samba_Spaces.alloc_size)
 	FROM Samba_File_Systems
 	JOIN Samba_Spaces
 	ON Samba_Spaces.fs_id = Samba_File_Systems.fsid
-	WHERE Samba_File_Systems.server_id = @server
+	WHERE Samba_File_Systems.server_id = 1
 	GROUP BY Samba_File_Systems.fsid
-	`
+	 *
+	*/
 
 	disksrows, query_err := pool.Query(context.Background(), sql, pgx.NamedArgs{
 		"server": serverid,
@@ -251,8 +272,10 @@ func (s *SambaServer) AddDiskToServer(ctx context.Context, in *proto_samba_manag
 func (s *SambaServer) FindSpacePath(space_id string) (string, string) {
 
 	sql := `
-	SELECT spaceid, dev, COALESCE(mount_path, ''), fs_id 
+	SELECT spaceid, device, COALESCE(mnt_point, ''), fs_id 
 	FROM Samba_Spaces
+	JOIN Samba_File_Systems
+	ON Samba_File_Systems.fsid = Samba_Spaces.fs_id
 	WHERE spaceid = @space_id
 	`
 
@@ -264,26 +287,34 @@ func (s *SambaServer) FindSpacePath(space_id string) (string, string) {
 		return "", " "
 	}
 
-	var spaceid, dev, mount_path, fs_id string
-	row.Scan(&spaceid, &dev, &mount_path, &fs_id)
+	var Spaceid, Dev, Mount_path, Fs_id string
+	for row.Next() {
+		err = row.Scan(&Spaceid, &Dev, &Mount_path, &Fs_id)
+		if err != nil {
 
-	if mount_path == "" {
-		return fmt.Sprintf("/mount/samba_server/%s/%s", fs_id, space_id), fs_id
+		}
 	}
 
-	return mount_path, fs_id
+	if Mount_path == "" {
+		return fmt.Sprintf("/mount/samba_server/%s/%s", Fs_id, space_id), Fs_id
+	}
+
+	return Mount_path, Fs_id
 
 }
 
-func (s *SambaServer) AllocateSambaShare(ctx context.Context, in *proto_samba_management.RequestShambaShare) (*proto_samba_management.SambaResponse, error) {
+func (s *SambaServer) AllocateSambaShare(ctx context.Context, in *proto_samba_management.RequestSambaShare) (*proto_samba_management.SambaResponse, error) {
 
 	/**
 	 *
 	 * Find Where Space is and Create New Folder for Spaceid
 	 *
 	 */
-
-	_, fsid := s.FindSpacePath(in.Spaceid) //Find Space Path, Now What ...????
+	fmt.Println("Got Request")
+	path, fsid := s.FindSpacePath(in.Spaceid) //Find Space Path, Now What ...????
+	fmt.Println(path)
+	CreateSambaShare(path, in.Shareid, in.Owner, in.Password, in.Spaceid)
+	//CreateSambaShare(path, in.Owner, in.Spaceid, in.Shareid, in.Password)
 
 	return &proto_samba_management.SambaResponse{
 		Status: 0,
@@ -298,9 +329,27 @@ func (s *SambaServer) AddUserToShare(ctx context.Context, in *proto_samba_manage
 	 *
 	 * Call Commands To Create the Share And Samba Formatting
 	 *
-	 *
+	 * To Call The Script I Need the ...
+	 * Shareid and Spaceid:::
 	 *
 	 */
+
+	user := in.User
+	password := in.Password
+	shareid := in.ShareId
+
+	row, err := s.pool.Query(context.Background(), "SELECT space_id FROM Samba_Shares where shareid=@shareid", pgx.NamedArgs{
+		"shareid": shareid,
+	})
+
+	if err != nil {
+
+	}
+
+	var spaceid string
+	row.Scan(&spaceid)
+
+	AddUserToShareId(user, password, shareid, spaceid)
 
 	return &proto_samba_management.AddUserResponse{}, nil
 }

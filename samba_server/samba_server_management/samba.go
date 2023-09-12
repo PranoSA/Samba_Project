@@ -63,19 +63,33 @@ func EnsureMount(dev string, mount_path string) (bool, error) {
  * spaceid is also used to identify Linux Users Groups In THe Space
  * And shareid is Used to identify users as within the share as well
  */
-func CreateSambaShare(space_mount_path string, shareid string, owner string, password string, spaceid string) {
+func CreateSambaShare(space_mount_path string, shareid string, owner string, password string, spaceid string) error {
 
-	os.Mkdir(space_mount_path+"/"+shareid, 0770)
+	fmt.Println(space_mount_path)
+	err := os.Mkdir(space_mount_path+"/"+shareid, 0770)
+	if err != nil {
+		return err
+	}
 
-	_, err := exec.Command("sh", "./create_samba.sh", space_mount_path, shareid, owner, password, spaceid).Output()
+	_, err = exec.Command("sh", "./create_samba.sh", space_mount_path, shareid, owner, password, spaceid).Output()
 
 	if err == nil {
 		log.Fatalf("Failed TO ALlocat Samba : %v ", err)
 	}
 
+	return nil
+
 }
 
-func AddUserToShareId(user string, password string, shareid string) {
+func AddUserToShareId(user string, password string, shareid string, spaceid string) {
+
+	sambaname := strings.Replace(user, "@", "-", -1)
+
+	_, err := exec.Command("sh", "./add_user_samba.sh", sambaname, password, shareid, spaceid).Output()
+
+	if err != nil {
+
+	}
 
 }
 

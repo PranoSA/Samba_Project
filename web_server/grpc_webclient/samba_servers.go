@@ -1,11 +1,13 @@
 package grpc_webclient
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type GRPCSambaClient struct {
@@ -49,7 +51,9 @@ func InitGRPCWebClients(samba []GRPCSambaServer) {
 
 	for i, v := range samba {
 		//conn, err := grpc.Dial(samba.Ip)
-		conn, err := grpc.Dial(v.Ip)
+		//conn-string :=
+
+		conn, err := grpc.Dial(fmt.Sprintf("%s:%d", v.Host, v.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 		if err != nil {
 			log.Fatalf("Samba Server %v Can't Be Reached Through GRPC", i)
@@ -57,7 +61,7 @@ func InitGRPCWebClients(samba []GRPCSambaServer) {
 
 		client := proto_samba_management.NewSambaAllocationClient(conn)
 		GRPCSambaClients = append(GRPCSambaClients, GRPCSambaClient{
-			Server_id:             i,
+			Server_id:             v.Id,
 			Grpc_Samba_Client:     client,
 			GRPC_Samba_Connection: conn,
 		})

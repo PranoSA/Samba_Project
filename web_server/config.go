@@ -141,6 +141,7 @@ func InitConfig(configPath string) error {
 			log.Fatal(err)
 		}
 		Application.routes.Models.Spaces = postgres_models.InitPostgresSpaceModel(pool)
+		Application.routes.Models.Samba_Shares = postgres_models.InitPostgresShareModel(pool)
 	}
 
 	if ApplicationYamlConfig.Data_Config_Option != "postgres" {

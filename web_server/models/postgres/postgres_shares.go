@@ -2,6 +2,7 @@ package postgres_models
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
@@ -28,6 +29,15 @@ func InitPostgresShareModel(pool *pgxpool.Pool) *PostgresShareModel {
 }
 
 */
+
+func (PGM PostgresShareModel) DeleteShare(ssr models.SambaShareResponse) (*models.SambaShareResponse, error) {
+	return nil, nil
+}
+
+func (PGM PostgresShareModel) AcceptInvite(sia models.ShareInviteAccept) (*models.ShareInviteResponse, error) {
+
+	return nil, nil
+}
 
 func (PGM PostgresShareModel) CreateInvite(sir models.ShareInviteRequest) (*models.ShareInviteResponse, error) {
 
@@ -104,9 +114,41 @@ func (PGM PostgresShareModel) CreateInvite(sir models.ShareInviteRequest) (*mode
 
 }
 
-func (PGM PostgresShareModel) GetServerBySpaceId(space_id string) (int, error) {
+func (PGM PostgresShareModel) GetServerBySpaceId(space_id string) (int, string, error) {
 
-	return 1, nil
+	sql := `
+	SELECT Samba_File_Systems.server_id, Samba_Spaces.owner 
+	FROM Samba_Spaces
+	JOIN Samba_File_Systems
+	ON Samba_File_Systems.fsid = Samba_Spaces.fs_id
+	WHERE spaceid = @space_id
+	`
+	//'6ff8278c-f1c5-458d-8d72-145851e5712a'
+	//`
+	//+ fmt.Sprintf("'lalalalal%s'", space_id) //@space_id`
+
+	row, err := PGM.pool.Query(context.Background(), sql, pgx.NamedArgs{
+		"space_id": space_id,
+	})
+
+	defer row.Close()
+
+	if err != nil {
+		return 0, "", err
+	}
+
+	var Serverid int = -1
+	var Owner string
+
+	for row.Next() {
+		err = row.Scan(&Serverid, &Owner)
+	}
+
+	if Serverid == -1 {
+		return Serverid, Owner, errors.New("")
+	}
+
+	return Serverid, Owner, nil
 }
 
 func (PGM PostgresShareModel) GetServerByShareId(share_id string) (int, error) {
@@ -116,32 +158,54 @@ func (PGM PostgresShareModel) GetServerByShareId(share_id string) (int, error) {
 
 func (PShareM PostgresShareModel) AddShare(ssr models.SambaShareRequest) (*models.SambaShareResponse, error) {
 
-	server_id, err := PShareM.GetServerBySpaceId(ssr.Spaceid)
+	server_id, owner_share, err := PShareM.GetServerBySpaceId(ssr.Spaceid)
 	if err != nil {
 		return nil, err
 	}
 
+	if owner_share != ssr.Email {
+		return nil, models.ErrorEntryDoesNotExist
+	}
+
 	sql := `
-		INSERT INTO Samba_Shares ()
-		VALUES ()
-		RETURNING shareid 
+		INSERT INTO Samba_Shares (space_id, owner)
+		VALUES (@space_id, @owner)
+		RETURNING shareid
 	`
 
 	rows, err := PShareM.pool.Query(context.Background(), sql, pgx.NamedArgs{
 		"space_id": ssr.Spaceid,
+		"owner":    ssr.Email,
 	})
-
-	var shareid string
-
-	rows.Scan(&shareid)
 
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := grpc_webclient.GRPCSambaClients[server_id].Grpc_Samba_Client.AllocateSambaShare(context.Background(), &proto_samba_management.RequestShambaShare{
-		Owner:   ssr.Email,
-		Spaceid: ssr.Spaceid,
+	var Shareid string
+	for rows.Next() {
+		err = rows.Scan(&Shareid)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	var index int = -1
+	for i, v := range grpc_webclient.GRPCSambaClients {
+		if v.Server_id == server_id {
+			index = i
+			break
+		}
+	}
+	if index == -1 {
+		return nil, errors.New("Server Does Not Exist")
+	}
+
+	res, err := grpc_webclient.GRPCSambaClients[index].Grpc_Samba_Client.AllocateSambaShare(context.Background(), &proto_samba_management.RequestSambaShare{
+		Owner:    ssr.Email,
+		Spaceid:  ssr.Spaceid,
+		Password: ssr.Password,
+		Shareid:  Shareid,
 	})
 
 	if err != nil {

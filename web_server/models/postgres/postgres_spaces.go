@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
 	"github.com/PranoSA/samba_share_backend/web_server/grpc_webclient"
@@ -20,12 +21,14 @@ func InitPostgresSpaceModel(pool *pgxpool.Pool) *PostgresSpaceModel {
 	return &PostgresSpaceModel{pool: pool}
 }
 
-func (PGM PostgresSpaceModel) GetServerBySpaceId(space_id string) (int, error) {
+func (PGM PostgresSpaceModel) GetServerBySpaceId(space_id string) (int, string, error) {
 
 	sql := `
-		SELECT server_id FROM Samba_Spaces
-		WHERE spaceid = @space_id 
-		
+		SELECT Samba_File_Systems.server_id, Samba_Spaces.owner 
+		FROM Samba_Spaces
+		JOIN Samba_File_Systems
+		ON Samba_File_Systems.fsid = Samba_Spaces.fs_id
+		WHERE spaceid = @space_id
 	`
 
 	row, err := PGM.pool.Query(context.Background(), sql, pgx.NamedArgs{
@@ -33,14 +36,15 @@ func (PGM PostgresSpaceModel) GetServerBySpaceId(space_id string) (int, error) {
 	})
 
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
 	var serverid int
-
+	var owner string
 	row.Scan(&serverid)
+	row.Scan(&owner)
 
-	return serverid, nil
+	return serverid, owner, nil
 }
 
 func (PGM PostgresSpaceModel) GetServerByShareId(share_id string) (int, error) {
@@ -60,10 +64,21 @@ func (PSM PostgresSpaceModel) CreateSpace(ssr models.SpaceRequest) (*models.Spac
 
 	c := grpc_webclient.GRPCSambaClients[server_id].Grpc_Samba_Client
 
-	res, _ := c.AlloateSpace(context.Background(), &proto_samba_management.SpaceAllocationRequest{
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := c.AlloateSpace(ctx, &proto_samba_management.SpaceAllocationRequest{
 		Owner: ssr.Owner,
 		Size:  ssr.Megabytes,
 	})
+
+	if err == context.DeadlineExceeded {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
 
 	sql := `
 	INSERT INTO Samba_Spaces (fs_id, owner, size)
@@ -87,7 +102,7 @@ func (PSM PostgresSpaceModel) CreateSpace(ssr models.SpaceRequest) (*models.Spac
 
 func (PSM PostgresSpaceModel) DeleteSpaceById(dsr models.DeleteSpaceRequest) (*models.SpaceResponse, error) {
 
-	serverid, e := PSM.GetServerBySpaceId(dsr.Space_id)
+	serverid, _, e := PSM.GetServerBySpaceId(dsr.Space_id)
 	if e != nil {
 		return nil, e
 	}
@@ -127,5 +142,35 @@ func (PSM PostgresSpaceModel) GetSpaceById(models.DeleteSpaceRequest) (*models.S
 
 func (PSM PostgresSpaceModel) GetSpaceByOwner(owner_uuid string) (*[]models.SpaceResponse, error) {
 
-	return &[]models.SpaceResponse{}, nil
+	sql := `
+	SELECT owner, spaceid, owner, alloc_size
+	FROM Samba_Spaces
+	WHERE owner = @owner
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	rows, err := PSM.pool.Query(ctx, sql, pgx.NamedArgs{
+		"owner": owner_uuid,
+	})
+
+	defer rows.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var response []models.SpaceResponse
+	for rows.Next() {
+		var NextSpaceResponse models.SpaceResponse = models.SpaceResponse{}
+
+		scanerr := rows.Scan(&NextSpaceResponse.Email, &NextSpaceResponse.Spaceid, &NextSpaceResponse.Owner, &NextSpaceResponse.Megabytes)
+		if scanerr != nil {
+			return nil, err
+		}
+		response = append(response, NextSpaceResponse)
+	}
+
+	return &response, nil //&[]models.SpaceResponse{}, nil
 }

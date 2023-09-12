@@ -43,7 +43,7 @@ type ShareInviteAccept struct {
  */
 
 type SambaShareModel interface {
-	AddShare(SambaShareResponse) (*SambaShareResponse, error)
+	AddShare(SambaShareRequest) (*SambaShareResponse, error)
 	DeleteShare(SambaShareResponse) (*SambaShareResponse, error)
 	CreateInvite(ShareInviteRequest) (*ShareInviteResponse, error)
 	AcceptInvite(ShareInviteAccept) (*ShareInviteResponse, error)

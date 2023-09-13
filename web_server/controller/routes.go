@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/PranoSA/samba_share_backend/web_server/auth"
 	"github.com/PranoSA/samba_share_backend/web_server/models"
 	"github.com/julienschmidt/httprouter"
+	"github.com/rabbitmq/amqp091-go"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -20,10 +22,7 @@ type AppRouter struct {
 	CORS_Origins  []string
 	Authenticator auth.Authentication
 	Models        models.Models
-}
-
-func AuthMiddleware(w http.ResponseWriter, r *http.Request, pa httprouter.Params) {
-
+	Queue         *amqp091.Connection
 }
 
 /**
@@ -74,6 +73,9 @@ func (approutes AppRouter) NewAppRouter() *httprouter.Router {
 	middleware := approutes.Authenticator.AuthenticationMiddleWare
 
 	// Inherited Routes
+	if _, ok := approutes.Authenticator.(auth.Authentication); !ok {
+		log.Fatal("approutes.Authenticator Must Implement auth.Authenticator")
+	}
 
 	if usermanagement, ok := approutes.Authenticator.(auth.UserManagementAuthentication); ok {
 		router.POST("/signup", usermanagement.Signup)

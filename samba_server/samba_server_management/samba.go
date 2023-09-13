@@ -81,16 +81,16 @@ func CreateSambaShare(space_mount_path string, shareid string, owner string, pas
 
 }
 
-func AddUserToShareId(user string, password string, shareid string, spaceid string) {
+func AddUserToShareId(user string, password string, shareid string, spaceid string) error {
 
 	sambaname := strings.Replace(user, "@", "-", -1)
 
 	_, err := exec.Command("sh", "./add_user_samba.sh", sambaname, password, shareid, spaceid).Output()
 
 	if err != nil {
-
+		return err
 	}
-
+	return nil
 }
 
 /*func getMount(mountdir string) (string, error){
@@ -126,10 +126,6 @@ return device, nill
  *
  *
  */
-func AddSambaShare(mount_path string, name string, admin_password string) {
-	exec.Command("sh", "-c", "")
-
-}
 
 func CheckMountPoint(mount_path string, device string) error {
 

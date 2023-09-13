@@ -126,9 +126,17 @@ func (PSM PostgresSpaceModel) DeleteSpaceById(dsr models.DeleteSpaceRequest) (*m
 	defer row.Close()
 
 	c := grpc_webclient.GRPCSambaClients[serverid].Grpc_Samba_Client
-	c.DeleteSpace(context.Background(), &proto_samba_management.DeleteSpaceRequest{
+	res, err := c.DeleteSpace(context.Background(), &proto_samba_management.DeleteSpaceRequest{
 		Spaceid: dsr.Space_id,
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode != 0 {
+		return nil, models.ErrorNotEnoughSpace
+	}
 
 	fmt.Println(c)
 

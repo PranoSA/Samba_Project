@@ -312,8 +312,21 @@ func (s *SambaServer) AllocateSambaShare(ctx context.Context, in *proto_samba_ma
 	 */
 
 	path, fsid := s.FindSpacePath(in.Spaceid) //Find Space Path, Now What ...????
-
-	CreateSambaShare(path, in.Shareid, in.Owner, in.Password, in.Spaceid)
+	if path == "" {
+		return &proto_samba_management.SambaResponse{
+			Status: 1,
+			Fsid:   fsid,
+			Ip:     "",
+		}, nil
+	}
+	err := CreateSambaShare(path, in.Shareid, in.Owner, in.Password, in.Spaceid)
+	if err != nil {
+		return &proto_samba_management.SambaResponse{
+			Status: 1,
+			Fsid:   fsid,
+			Ip:     "",
+		}, nil
+	}
 	//CreateSambaShare(path, in.Owner, in.Spaceid, in.Shareid, in.Password)
 
 	return &proto_samba_management.SambaResponse{
@@ -343,13 +356,25 @@ func (s *SambaServer) AddUserToShare(ctx context.Context, in *proto_samba_manage
 	})
 
 	if err != nil {
-
+		return &proto_samba_management.AddUserResponse{
+			User:   "",
+			Status: 1,
+		}, nil
 	}
 
 	var spaceid string
 	row.Scan(&spaceid)
 
-	AddUserToShareId(user, password, shareid, spaceid)
+	err = AddUserToShareId(user, password, shareid, spaceid)
+	if err != nil {
+		return &proto_samba_management.AddUserResponse{
+			User:   "",
+			Status: 1,
+		}, nil
+	}
 
-	return &proto_samba_management.AddUserResponse{}, nil
+	return &proto_samba_management.AddUserResponse{
+		User:   user,
+		Status: 0,
+	}, nil
 }

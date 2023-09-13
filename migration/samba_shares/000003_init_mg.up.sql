@@ -9,3 +9,7 @@ CREATE TABLE CompressLinks (
     compressid uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(128)
 );
+
+/**
+    Change This Later...
+*/

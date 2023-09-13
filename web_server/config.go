@@ -13,6 +13,7 @@ import (
 	"github.com/PranoSA/samba_share_backend/web_server/grpc_webclient"
 	postgres_models "github.com/PranoSA/samba_share_backend/web_server/models/postgres"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
 	"gopkg.in/yaml.v3"
 )
@@ -40,6 +41,7 @@ type YAMLConfig struct {
 	DynamoDBConfig        map[interface{}]interface{}   `yaml:"DYNAMO_CONIG"`
 	Redis_Config          map[interface{}]interface{}   `yaml:"REDIS_CONFIG"`
 	Samba_servers         []map[interface{}]interface{} `yaml:"SAMBA_SERVERS"`
+	Rabbit_Conf           map[interface{}]interface{}   `yaml:"AMQP_Config"`
 }
 
 var ApplicationYamlConfig YAMLConfig
@@ -182,6 +184,15 @@ func InitConfig(configPath string) error {
 
 		servers[i] = next
 	}
+
+	rabbitmq_conf := ApplicationYamlConfig.Rabbit_Conf
+
+	conn, err := amqp091.Dial(fmt.Sprintf("amqp://%s:%s@%s:%d", rabbitmq_conf["username"], os.Getenv("RABBITMQ_PASSWORD"), rabbitmq_conf["HOST"], rabbitmq_conf["PORT"]))
+	if err != nil {
+		log.Fatal("Failed TO Dial To RabbitMQ Queue")
+	}
+
+	Application.routes.Queue = conn
 
 	grpc_webclient.InitGRPCWebClients(servers)
 	return nil

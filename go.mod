@@ -14,7 +14,7 @@ require (
 	github.com/redis/go-redis/v9 v9.1.0
 	github.com/swaggo/http-swagger v1.3.4
 	go.etcd.io/etcd/client/v3 v3.5.9
-	golang.org/x/crypto v0.12.0
+	golang.org/x/crypto v0.13.0
 	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -91,8 +91,8 @@ require (
 	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20230526161137-0005af68ea54 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230525234035-dd9d682886f9 // indirect

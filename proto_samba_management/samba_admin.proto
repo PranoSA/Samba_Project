@@ -149,7 +149,7 @@ message DeleteSpaceRequest  {
 
 message DeleteSpaceResponse {
     string spaceid = 1;
-    string status_code = 2;
+    int32 status_code = 2;
 }
 
 service SpaceAllocation {

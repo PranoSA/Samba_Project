@@ -198,7 +198,7 @@ func (PShareM PostgresShareModel) AddShare(ssr models.SambaShareRequest) (*model
 		}
 	}
 	if index == -1 {
-		return nil, errors.New("Server Does Not Exist")
+		return nil, errors.New("Server Is Not Configured ")
 	}
 
 	res, err := grpc_webclient.GRPCSambaClients[index].Grpc_Samba_Client.AllocateSambaShare(context.Background(), &proto_samba_management.RequestSambaShare{

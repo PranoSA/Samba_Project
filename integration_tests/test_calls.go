@@ -23,6 +23,10 @@ import (
     u.Path = resource
     urlStr := u.String() // "https://api.com/user/"
  */
+
+var TestRequestsCreateShare []struct{	
+}
+
 func TestRest(t *testing.T) {
 	realm := "samba"
 	auth_url := fmt.Sprintf("http://localhost:8080/realms/%s/protocol/openid-connect/token", realm)

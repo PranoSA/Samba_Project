@@ -36,6 +36,12 @@ SAMBA_SERVERS:
     TLS_KEY: "./client-key.pem"
     TLS_CERT: "./client-cert.pem"
 
+AMQP_Config:
+  HOST: localhost
+  PORT: 5672
+  #CA_CERT: "./"
+  RABBIT_USER: guest
+
 ### Ignored, Only For Example, Remove EXAMPLE_ for actual
 EXAMPLE_LDAP_CONFIG:
   TLS_CERT: ""

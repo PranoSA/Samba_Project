@@ -310,9 +310,9 @@ func (s *SambaServer) AllocateSambaShare(ctx context.Context, in *proto_samba_ma
 	 * Find Where Space is and Create New Folder for Spaceid
 	 *
 	 */
-	fmt.Println("Got Request")
+
 	path, fsid := s.FindSpacePath(in.Spaceid) //Find Space Path, Now What ...????
-	fmt.Println(path)
+
 	CreateSambaShare(path, in.Shareid, in.Owner, in.Password, in.Spaceid)
 	//CreateSambaShare(path, in.Owner, in.Spaceid, in.Shareid, in.Password)
 

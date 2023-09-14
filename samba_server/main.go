@@ -54,6 +54,7 @@ func main() {
 	s := sambaservermanagement.NewSambaServer(pool, ServerId)
 
 	proto_samba_management.RegisterSambaAllocationServer(grpcServer, s)
+	proto_samba_management.RegisterDiskAllocationServer(grpcServer, s)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %s", err)

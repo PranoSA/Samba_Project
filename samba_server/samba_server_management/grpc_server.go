@@ -259,14 +259,42 @@ func (s *SambaServer) AddDiskToServer(ctx context.Context, in *proto_samba_manag
 		return &proto_samba_management.PartitionAllocResponse{
 			StatusCode:    1,
 			StatusMessage: "Wrong Mount Point For Disk",
-		}, err
+		}, nil
 	}
 
-	return &proto_samba_management.PartitionAllocResponse{
-		StatusCode: 0,
+	//Now Ensure No File Systems Already Mounted At This Location...
+	var disk_found bool = false
+	for _, fs := range FS.FileSystems {
+		if fs.Dev == in.Device {
+			disk_found = true
+			break
+		}
+	}
 
-		StatusMessage: "",
+	if disk_found {
+		fmt.Printf("%v", err)
+		return &proto_samba_management.PartitionAllocResponse{
+			StatusCode:    2,
+			StatusMessage: "File System Already Mounted Here",
+		}, nil
+	}
+
+	FS.FileSystems = append(FS.FileSystems, FileSystem{
+		Fsid:      in.Fsid,
+		Dev:       in.Device,
+		RoomLeft:  in.AllocSize,
+		MouthPath: in.MountPath,
+		Lock:      &sync.Mutex{},
+	})
+
+	return &proto_samba_management.PartitionAllocResponse{
+		StatusCode:    0,
+		StatusMessage: fmt.Sprintf("Successfully Mounted %s at %s", in.Device, mount_path),
 	}, nil
+
+	//If All Properly Mounted
+	//Check i
+
 }
 
 func (s *SambaServer) FindSpacePath(space_id string) (string, string) {

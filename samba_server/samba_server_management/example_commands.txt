@@ -1,0 +1,1 @@
+go run *.go --DiskUtil --id=1 --ip=192.168.1.176 --enforce --password=user --user=password--disk=/dev/sda3 --size=50000  --mount=/mount/fs1

@@ -169,7 +169,6 @@ func main() {
 		if view {
 			return
 		}
-
 		if diskAlreadyExists {
 			fmt.Println("Disk Already Exists On Server")
 			os.Exit(0)
@@ -183,7 +182,7 @@ func main() {
 		if mount_path == "" {
 			mount_location := fmt.Sprintf("/samba_app/mnt/%d/fsid", id)
 
-			fmt.Printf("Mounting at Default Location of %v \n", mount_location)
+			fmt.Printf("Attempting to Mount %v at Default Location of %v \n", device, mount_location)
 		}
 
 		if size == 0 {
@@ -191,7 +190,30 @@ func main() {
 			os.Exit(0)
 		}
 
-		err = Config.manager.AddDiskToServer(id, device, mount_path, size)
+		if Enforce {
+			fmt.Println("Going to Attempt Connection With Backend Server")
+
+			err = NewFileSystemRequest(pool, FileSystemRequest{
+				Server_id:  1,
+				Mount_path: mount_path,
+				Fs_id:      "12509900",
+				Size:       int64(size),
+				Dev:        device,
+			}, nil)
+
+			if err != nil {
+				log.Fatalf("%v \n", err)
+			}
+		}
+		if !Enforce {
+
+			err = Config.manager.AddDiskToServer(id, device, mount_path, size)
+
+			if err != nil {
+				log.Fatalf("%v \n", err)
+			}
+
+		}
 
 		if err != nil {
 			log.Fatalf("%v \n", err)

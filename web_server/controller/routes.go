@@ -87,6 +87,8 @@ func (approutes AppRouter) NewAppRouter() *httprouter.Router {
 		router.POST("/csrf", sessionmanager.CSRF)
 	}
 
+	approutes.StartCompressPublisher()
+	approutes.StartDashPublisher()
 	//Group & Share Rotes
 	router.DELETE("/group/:shareid", middleware(approutes.DeleteShare)) //Only Owner Can DO THis
 

@@ -20,12 +20,12 @@ var (
 
 	//Name of Queue
 	//Backup_Listening_queue = "samba_listening"
-	Queue_Listening_Backup = "samba_listening"
+	Queue_Listening_Backup = "compress_listening"
 
 	/**
 	 * Routing Keys To Queues
 	 */
-	KeyCompressRequest = "share"
+	KeyCompressRequest = "Compress_Key"
 
 	//SambaCompressRequest = "share"
 

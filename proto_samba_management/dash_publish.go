@@ -49,6 +49,10 @@ var (
 	/**
 	 * Routing Keys
 	 */
+	KEY_DASH_REQUEST  = "dash request"
+	KEY_DASH_PUBLISH  = "http_dash_new"
+	KEY_DASH_COMPLETE = "http_dash_complete"
+
 	Dash_Request   = "dash request"
 	Dash_published = "http_dash_new"      //Used To Signify A New Request for a Dash Transformation Has Been Made
 	Dash_complete  = "http_dash_complete" //Used To Signify a file has been Dashed
@@ -56,6 +60,7 @@ var (
 	 * Name For QUeues That BindTO Exchange AT Routing Keys
 	 *
 	 */
+	QUEUE_DASH          = "dash queue requests"
 	Dash_Queue_Requests = "dash queue requests"
 
 	/**

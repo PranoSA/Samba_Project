@@ -117,7 +117,8 @@ func (oidc OIDCAuthenticator) AuthenticationMiddleWare(next httprouter.Handle) h
 		jsonwebtoken, err := oidc.VerifyJwt(tokenbytes)
 
 		if err != nil {
-
+			next(w, r, pa)
+			return
 		}
 
 		(*jsonwebtoken).Audience()

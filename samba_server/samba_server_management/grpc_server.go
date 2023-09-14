@@ -6,6 +6,10 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -405,4 +409,64 @@ func (s *SambaServer) AddUserToShare(ctx context.Context, in *proto_samba_manage
 		User:   user,
 		Status: 0,
 	}, nil
+}
+
+func GetDiskRoom(device string) int {
+
+	res, err := exec.Command("sh", "-c", "df -h").Output()
+	if err != nil {
+		return 0
+	}
+	entries := strings.Split(string(res), "\n")
+
+	var correctEntry string
+
+	for _, e := range entries[1:] {
+		fields := strings.Fields(e)
+		if len(fields) != 6 {
+			break
+		}
+		if fields[0] == device {
+			correctEntry = fields[3]
+		}
+	}
+
+	if correctEntry == "" {
+		return 0
+	}
+
+	re, err := regexp.Compile("^[0-9]+")
+
+	if err != nil {
+		return 0
+	}
+
+	disk := re.FindAllString(correctEntry, -1)
+	if len(disk) != 1 {
+		return 0
+	}
+
+	er, err := regexp.Compile("^[0-9]+(M|G|T)$")
+
+	units := er.FindAllStringSubmatch(correctEntry, -1)
+	if len(units) != 1 {
+		return 0
+	}
+
+	size, err := strconv.Atoi(disk[0])
+
+	if err != nil {
+		return 0
+	}
+
+	if units[0][1] == "G" {
+		size = size * 1000
+	}
+	if units[0][1] == "T" {
+		size = size * 1_000_000
+	}
+	if units[0][1] == "K" {
+		size = size / 1000
+	}
+	return size
 }

@@ -75,14 +75,14 @@ func TestCompresS(t *testing.T) {
 		t.Error("Failed TO Declare QUeue")
 	}
 
-	ch.QueueBind(queue.Name, proto_samba_management.KeyCompressRequest, proto_samba_management.Exchange_Backup, false, amqp.Table{})
+	ch.QueueBind(queue.Name, fmt.Sprintf("%s-%d", proto_samba_management.KeyCompressRequest, 1), proto_samba_management.Exchange_Backup, false, amqp.Table{})
 	t.Run("publish good point", func(t *testing.T) {
 
 		ch.PublishWithContext(context.Background(), proto_samba_management.Exchange_Backup, proto_samba_management.KeyCompressRequest, false, false, amqp.Publishing{
 			Body: []byte("srtrrr"),
 		})
 		go func() {
-			cs.ListenToCompress()
+			cs.ListenToCompress(1)
 		}()
 		time.Sleep(5 * time.Second)
 	})

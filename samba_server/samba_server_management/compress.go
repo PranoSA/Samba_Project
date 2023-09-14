@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"time"
 
@@ -23,12 +22,13 @@ type CompressServer struct {
 	Pool         *pgxpool.Pool
 }
 
-func (cs CompressServer) ListenToCompress() {
+func (cs CompressServer) ListenToCompress(id int) {
 
-	id := os.Getenv("SERVER_ID")
+	/*id := os.Getenv("SERVER_ID")
 	if id == "" {
 		log.Fatal("Set SERVER_ID Environmental Variable")
 	}
+	*/
 
 	ch, err := cs.Rabb_conn.Channel()
 	if err != nil {
@@ -40,13 +40,13 @@ func (cs CompressServer) ListenToCompress() {
 	err = ch.ExchangeDeclare(proto_samba_management.Exchange_Backup, "direct", true, false, false, false, amqp.Table{})
 
 	if err != nil {
-
+		log.Fatalf("Failed To Declare Exchange on Rabbitmq %v", err)
 	}
 
-	err = ch.QueueBind(queue.Name, proto_samba_management.KeyCompressRequest, proto_samba_management.Exchange_Backup, false, amqp.Table{})
+	err = ch.QueueBind(queue.Name, fmt.Sprintf("%s%d", proto_samba_management.KeyCompressRequest, id), proto_samba_management.Exchange_Backup, false, amqp.Table{})
 
 	if err != nil {
-
+		log.Fatalf("Failed To Bind Queue to Exchange on Rabbitmq %v", err)
 	}
 
 	forever := make(chan (struct{}), 1)

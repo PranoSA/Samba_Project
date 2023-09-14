@@ -21,6 +21,8 @@ import (
  */
 
 type SambaServerModel interface {
+	GetServerBySpaceId(space_id string) (int, string, error)
+	GetServerByShareId(share_id string) (int, error)
 }
 
 type SambaServerETCD struct {

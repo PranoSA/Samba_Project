@@ -2,7 +2,6 @@ package grpc_webclient
 
 import (
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/PranoSA/samba_share_backend/proto_samba_management"
@@ -49,24 +48,28 @@ type GRPCSambaServer struct {
 
 func InitGRPCWebClients(samba []GRPCSambaServer) {
 
-	for i, v := range samba {
+	for _, v := range samba {
 		//conn, err := grpc.Dial(samba.Ip)
 		//conn-string :=
+		go func(v GRPCSambaServer) {
+			conn, err := grpc.Dial(fmt.Sprintf("%s:%d", v.Host, v.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+			if err != nil {
+				//log.Fatalf("Samba Server %v Can't Be Reached Through GRPC", i)
+				return
+			}
 
-		conn, err := grpc.Dial(fmt.Sprintf("%s:%d", v.Host, v.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
-
-		if err != nil {
-			log.Fatalf("Samba Server %v Can't Be Reached Through GRPC", i)
-		}
-
-		client := proto_samba_management.NewSambaAllocationClient(conn)
-		GRPCSambaClients = append(GRPCSambaClients, GRPCSambaClient{
-			Server_id:             v.Id,
-			Grpc_Samba_Client:     client,
-			GRPC_Samba_Connection: conn,
-		})
+			client := proto_samba_management.NewSambaAllocationClient(conn)
+			GRPCSambaClients = append(GRPCSambaClients, GRPCSambaClient{
+				Server_id:             v.Id,
+				Grpc_Samba_Client:     client,
+				GRPC_Samba_Connection: conn,
+			})
+		}(v)
 	}
-
+	/*if len(GRPCSambaClients) == 0 {
+		log.Fatalf("Failed To Connect TO Any GRPC Servers")
+	}
+	*/
 }
 
 /**

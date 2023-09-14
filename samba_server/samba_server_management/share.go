@@ -48,6 +48,10 @@ func InitMessageTransmitor() *MessageTransmitor {
 	NewMessageTransmitor.minioClient = minioClient
 	NewMessageTransmitor.MessageQueue = make(chan ShareMessage, 100)
 
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	//ch, err := conn.Channel()
+	NewMessageTransmitor.rabbit_mq_client = conn
+
 	go func() {
 		NewMessageTransmitor.ShareMp4()
 	}()
@@ -57,9 +61,6 @@ func InitMessageTransmitor() *MessageTransmitor {
 	 * Declare Exchange and Channel Here to later publish to exchange
 	 *
 	 */
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
-	//ch, err := conn.Channel()
-	NewMessageTransmitor.rabbit_mq_client = conn
 
 	return &NewMessageTransmitor
 }

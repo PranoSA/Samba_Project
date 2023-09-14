@@ -117,6 +117,7 @@ func InitConfig(configPath string) error {
 
 	if ApplicationYamlConfig.Session_Config_Option == "test" {
 		os.Setenv("PG_PASSWORD", "prano")
+		os.Setenv("RABBITMQ_PASSWORD", "guest")
 		Application.routes.Authenticator = auth.AllAllowedAuthenticator{}
 	}
 
@@ -144,6 +145,8 @@ func InitConfig(configPath string) error {
 		}
 		Application.routes.Models.Spaces = postgres_models.InitPostgresSpaceModel(pool)
 		Application.routes.Models.Samba_Shares = postgres_models.InitPostgresShareModel(pool)
+
+		Application.routes.Models.SambaServers = postgres_models.InitPostgresServerModel(pool)
 	}
 
 	if ApplicationYamlConfig.Data_Config_Option != "postgres" {
@@ -186,13 +189,17 @@ func InitConfig(configPath string) error {
 	}
 
 	rabbitmq_conf := ApplicationYamlConfig.Rabbit_Conf
+	user := rabbitmq_conf["RABBIT_USER"].(string)
+	password := os.Getenv("RABBITMQ_PASSWORD")
+	rabbitport := rabbitmq_conf["PORT"].(int)
+	rabbithost := rabbitmq_conf["HOST"].(string)
 
-	conn, err := amqp091.Dial(fmt.Sprintf("amqp://%s:%s@%s:%d", rabbitmq_conf["username"], os.Getenv("RABBITMQ_PASSWORD"), rabbitmq_conf["HOST"], rabbitmq_conf["PORT"]))
+	rabbitconn, err := amqp091.Dial(fmt.Sprintf("amqp://%s:%s@%s:%d", user, password, rabbithost, rabbitport))
 	if err != nil {
 		log.Fatal("Failed TO Dial To RabbitMQ Queue")
 	}
 
-	Application.routes.Queue = conn
+	Application.routes.Queue = rabbitconn
 
 	grpc_webclient.InitGRPCWebClients(servers)
 	return nil

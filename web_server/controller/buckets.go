@@ -34,7 +34,7 @@ type CompressRequest struct {
 }
 
 var DashPublications chan (DashHTTPRequest) = make(chan DashHTTPRequest, 10000)
-var CompressPublications chan (DashHTTPRequest) = make(chan DashHTTPRequest, 10000)
+var CompressPublications chan (CompressRequest) = make(chan CompressRequest, 10000)
 
 func (ap AppRouter) StartDashPublisher() {
 	go func() {
@@ -83,6 +83,11 @@ func (ar AppRouter) RequestDash(w http.ResponseWriter, r *http.Request, ap httpr
 	var request DashHTTPRequest
 
 	json.NewDecoder(r.Body).Decode(&request)
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	DashPublications <- request
 
@@ -91,8 +96,22 @@ func (ar AppRouter) RequestDash(w http.ResponseWriter, r *http.Request, ap httpr
 
 func (ar AppRouter) CompressShare(w http.ResponseWriter, r *http.Request, ap httprouter.Params) {
 
+	var request CompressRequest
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	CompressPublications <- request
+
 }
 
 func (ar AppRouter) GetCompressLinks(w http.ResponseWriter, r *http.Request, ap httprouter.Params) {
+
+}
+
+func (ar AppRouter) GetDashLinks(w http.ResponseWriter, r *http.Request, ap httprouter.Params) {
 
 }

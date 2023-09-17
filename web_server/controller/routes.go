@@ -44,15 +44,15 @@ func (approutes AppRouter) CorsMiddleware(next httprouter.Handle) func(http.Resp
 		}
 
 		if approutes.CORS_Origins[0] == "*" {
-			(w).Header().Set("Access Controller-Allow-Origin", "*")
+			(w).Header().Set("Access Controller-Allow-Origin", r.Header.Get("origin"))
 			next(w, r, p)
 			return
 		}
 
-		for i, v := range approutes.CORS_Origins {
+		for i := range approutes.CORS_Origins {
 			if r.Header.Get("Origin") == approutes.CORS_Origins[i] {
 
-				(w).Header().Set("Access-Control-Allow-Origin", v)
+				(w).Header().Set("Access-Control-Allow-Origin", r.Header.Get("origin"))
 				next(w, r, p)
 				return
 			}
@@ -89,7 +89,10 @@ func (approutes AppRouter) NewAppRouter() *httprouter.Router {
 
 	approutes.StartCompressPublisher()
 	approutes.StartDashPublisher()
+
 	//Group & Share Rotes
+	router.GET("/whoami", middleware(approutes.WhoAmI))
+
 	router.DELETE("/group/:shareid", middleware(approutes.DeleteShare)) //Only Owner Can DO THis
 
 	router.POST("/space/:spaceid/group", middleware(approutes.CreateShare))
@@ -106,12 +109,18 @@ func (approutes AppRouter) NewAppRouter() *httprouter.Router {
 
 	router.DELETE("/spaces/:spaceid", middleware(approutes.DeleteSpace))
 
+	//Documentation Routes??
 	router.GET("/doc/:any", swaggerHandler)
 
 	// To Be Implemented -> Compute Routes
-	//
+	//Need To Check if Authorized
+	router.POST("/share/video/:filename", middleware(approutes.RequestDash))
 
-	router.POST("/spaces/mpegdash/:filename", middleware(approutes.CreateShare))
+	router.GET("/shares/video", middleware(approutes.GetCompressLinks))
+
+	router.POST("/shares/archive/:filename", middleware(approutes.CompressShare))
+
+	router.GET("/shares/arhchive", middleware(approutes.GetCompressLinks))
 
 	/**
 	 *

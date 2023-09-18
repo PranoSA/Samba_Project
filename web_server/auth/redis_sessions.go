@@ -15,7 +15,7 @@ import (
 )
 
 type RedisSessionManager struct {
-	RDB *redis.Client
+	RDB *redis.ClusterClient
 	SUO SignUpOnAuthentication
 }
 
@@ -263,6 +263,10 @@ func (rsm RedisSessionManager) Login(w http.ResponseWriter, r *http.Request, pr 
 
 }
 
+/**
+ * Revoke Both Cookie and CSRF Token
+ *
+ */
 func (rsm RedisSessionManager) Logout(w http.Response, r *http.Request, params httprouter.Params) {
 
 }

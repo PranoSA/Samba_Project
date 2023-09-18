@@ -6,13 +6,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
-	"github.com/PranoSA/samba_share_backend/web_server/auth"
 	"github.com/PranoSA/samba_share_backend/web_server/models"
 	clientv3 "go.etcd.io/etcd/client/v3"
-	"gopkg.in/yaml.v3"
 )
 
 var httpPort string
@@ -66,50 +63,24 @@ func main() {
 
 	flag.Parse()
 
-	auth.InitOIDCAuthenticator(jwks_url, []string{}, []string{})
-	fmt.Printf(configPath + "\n")
-
-	config_bytes, err := os.ReadFile(configPath)
-	if err != nil {
-		log.Fatal(err)
-
-		fmt.Errorf("Failed To Read File %v : %v", configPath, err)
+	if configPath == "" {
+		configPath = "/etc/samba_server/web/config.yml"
 	}
 
-	type YAMLConfig struct {
-		Aud                    []string                    `yaml:"acceptedAud"`
-		Iss                    []string                    `yaml:"acceptedIss"`
-		PG_Config              map[interface{}]interface{} `yaml:"DB_URI"`
-		Jwks                   string                      `yaml:"JWKS_URI"`
-		LDAP                   map[interface{}]interface{} `yaml:"LDAP_CONFIG"`
-		ServerManagementMethod string                      `yaml:"Server_Management"`
-		ETCDConfig             map[interface{}]interface{} `yaml:"ETCD_Config"`
+	InitConfig(configPath)
+
+	Application.port = 8000
+	Application.addr = "0.0.0.0"
+
+	srv := http.Server{
+		Addr:      fmt.Sprintf("%s:%d", Application.addr, Application.port),
+		TLSConfig: Application.https_tls_config,
+		ErrorLog:  log.Default(),
+		Handler:   Application.routes.NewAppRouter(),
 	}
 
-	server_conf := YAMLConfig{}
-
-	err = yaml.Unmarshal(config_bytes, &server_conf)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf(server_conf.Aud[0])
-
-	var problems int = 0
-
-	if authMethod != "oidc" && sessionMethod == "bearer" {
-		problems++
-		fmt.Errorf("Bearer Only Works If OIDC Is Specified")
-	}
-
-	if sessionMethod == "bearer" && jwks_url == "" {
-		problems++
-		fmt.Errorf("If using Session Method of Bearer Must include a json wek key url")
-	}
-
-	/***
-	 * ETCD CONFIGURATION IF EXISTS
-	 *
-	 */
+	log.Fatal(srv.ListenAndServe())
+	log.Fatal(srv.ListenAndServeTLS("./", "./"))
 
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   []string{"localhost:2379", "localhost:22379", "localhost:32379"},

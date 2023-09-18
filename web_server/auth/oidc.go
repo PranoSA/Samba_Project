@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -15,11 +16,43 @@ import (
 )
 
 type OIDCAuthenticator struct {
-	keys      jwk.Set
-	userModel models.UserModel
+	Keys      jwk.Set
+	Issuer    string
+	Audience  string
+	userModel models.UserModel //Why ???
+
 }
 
-func InitOIDCAuthenticator(jwks_url string, aud []string, iss []string) {
+func InitOIDCAuthenticatorFromConfig(c map[interface{}]interface{}) (*OIDCAuthenticator, error) {
+
+	jwks_url, ok := c["JWKS_URL"].(string)
+	if !ok {
+		return nil, errors.New("Please Define JWKS_URL")
+	}
+
+	issuer, ok := c["ISSUER"].(string)
+	if !ok {
+		return nil, errors.New("Please Define OIDC Issuer")
+	}
+
+	audience, ok := c["AUDIENCE"].(string)
+	if !ok {
+		return nil, errors.New("Please Define Mandatory OIDC Audience ")
+	}
+
+	authenticator, err := InitializeOIDCAuthenticator(jwks_url, issuer, audience)
+	if err != nil {
+		return nil, err
+	}
+
+	return authenticator, nil
+}
+
+/**
+ * Switch to An ARray LAter
+ *
+ */
+func InitializeOIDCAuthenticator(jwks_url string, aud string, iss string) (*OIDCAuthenticator, error) {
 	req, err := http.NewRequest("GET", jwks_url, nil)
 
 	client := http.Client{}
@@ -38,11 +71,17 @@ func InitOIDCAuthenticator(jwks_url string, aud []string, iss []string) {
 
 	fmt.Println(set)
 
+	return &OIDCAuthenticator{
+		Keys:     set,
+		Issuer:   iss,
+		Audience: aud,
+	}, nil
+
 }
 
 func (oidc OIDCAuthenticator) VerifyJwt(token []byte) (*jwt.Token, error) {
 
-	jwt, err := jwt.Parse(token, jwt.WithKeySet(oidc.keys))
+	jwt, err := jwt.Parse(token, jwt.WithKeySet(oidc.Keys))
 	if err != nil {
 		return nil, err
 	}
@@ -67,28 +106,31 @@ func (oidc OIDCAuthenticator) AuthenticateContext(bearer string) (*jwt.Token, er
 	return jsonwebtoken, err
 }
 
-func (oidc OIDCAuthenticator) AuthenticationMiddleWare(w http.ResponseWriter, r *http.Request, pr httprouter.Params) httprouter.Handle {
+func (oidc OIDCAuthenticator) AuthenticationMiddleWare(next httprouter.Handle) httprouter.Handle {
 
-	bearer := strings.Split(r.Header.Get("Authorization"), "Bearer ")[1]
+	return func(w http.ResponseWriter, r *http.Request, pa httprouter.Params) {
 
-	tokenbytes := []byte(bearer)
+		bearer := strings.Split(r.Header.Get("Authorization"), "Bearer ")[1]
 
-	jsonwebtoken, err := oidc.VerifyJwt(tokenbytes)
+		tokenbytes := []byte(bearer)
 
-	if err != nil {
+		jsonwebtoken, err := oidc.VerifyJwt(tokenbytes)
 
-	}
+		if err != nil {
+			next(w, r, pa)
+			return
+		}
 
-	useremail := (*jsonwebtoken).Subject()
+		(*jsonwebtoken).Audience()
+		useremail := (*jsonwebtoken).Subject()
 
-	user, _ := oidc.userModel.GetUserByIDWithCreate(useremail)
+		//user, _ := oidc.userModel.GetUserByIDWithCreate(useremail)
 
-	ctx := context.WithValue(r.Context(), "Authentication", user.Email)
+		ctx := context.WithValue(r.Context(), "Authorization", useremail)
 
-	r.WithContext(ctx)
+		r = r.WithContext(ctx)
 
-	return func(w http.ResponseWriter, r *http.Request, pr httprouter.Params) {
-
+		next(w, r, pa)
 	}
 
 }

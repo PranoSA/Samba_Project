@@ -1,0 +1,9 @@
+[$SHARE_ID]
+    path = $MOUNT_PATH/$SHARE_ID
+    browseable = no
+    read only = no
+    force create mode = 0777
+    force directory mode = 0777
+    create mask = 0777
+    directory mask = 0777
+    valid users = bob fred ted jed 

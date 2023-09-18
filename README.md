@@ -56,66 +56,137 @@ The Database Tables (Or Entities) associated with this are
 
 
 ## Noun List 
-
+List of Objects that will be referenced in the Code and Documentation 
 
 ### User : Globally Defined User
+Globally Defined User to The Web Application
 
 
-### Space : Allocated Space For a File System Identified by User.id + spaceid 
+### Samba User
+User Defined with smbpasswd on a samba password, these credentials aren't cross-referenced anywhere, 
+the user name will be the ID of the samba Share + Login Name to the web application
 
 
-### Share : File System Share
+### Space : 
+Allocated Space For a File System Identified by User.id + spaceid 
 
 
-### File-System: Tracks File Systems Mounted on the Samba Share Servers (Backend Only)
+### Share :
+ File System Share with an owner who allocates it through Web API
 
 
-### ISCSI_FS_ID : Tracks ISCSI Targets and Backup Replicas
+### File-System: 
+Tracks File Systems Mounted on the Samba Share Servers (Backend Only)
 
 
-### Samba_Server : Tracks Samba Servers, Their IP Locations and Replicas
+### ISCSI_FS_ID : 
+Tracks ISCSI Targets and Backup Replicas
 
 
-### ISCSI_SERVER: Trcks ISCSI Targets, Their IP, ID, and Replicas
+### Samba_Server :
+ Tracks Samba Servers, Their IP Locations and Replicas
+
+
+### ISCSI_SERVER: (Might Remove)
+Tracks ISCSI Targets, Their IP, ID, and Replicas
 
 
 # Deployment Options
 
+
+
+<br>
+
+## Login/Signup Methods
+
+Configuration Can Be Setup On Where to Store Usernames and their respective passwords (as well as the challenge hash to be done)
+to authenticate users and return credentials to the User to map to sessions.
+
+When using OIDC, this is done by the OIDC Provider where the client will have to use OIDC Configuration (Auth URL, ClientID or 
+ClientID + ClientSecret, Redirect URIs, Token Endpoints) to receive these credentials.
+
+
+
+### Allowing Signup with Postgres or DynamoDB
+
+To allow creation of user store using a user table that stores a salted hash challenge row to authenticate against.
+This allows Signup
+
+### LDAP
+Externally Managed LDAP search with a search base DN for users, allows authentication with attempted bind requests to the server.
+
+### OIDC / JWKS
+Externally Managed 0AUTH2 / OIDC Provider
+<br>
+
 ## Session Methods
 
-Define How To Authentiate and Authorize HTTP Requests to the server
+Configuration to be setup to use different Modes of Authentication for HTTP Requests to the Web-Server Application
+These will be used to assume roles within the application.
+
+The Session methods involve either Authentication Headers in the Request or Authentication Cookies with a CSRF Token 
+mapped against a Redis Database. 
+<br>
 
 ### Basic Authentication
 
+Authentication Header "Basic" +" " + base64(username):base64(string)
+<br>
+
 ### Cookie Based Authentication
 
+Cookie with Name Authentication and HTTP-Only Access 
+Needs to Be configured with Domain Attribute 
+
+<br>
 ### Bearer Token Authentication
 
+For OIDC Tokens from the SSO Keycloak or other OIDC provider instance
 
-## Authentication Methods
-
-
-### Allowing Signup with LDAP or Postgres or DynamoDB
-
-To allow creation of user store using 
-
-
-### OIDC / JWKS
-
+Authentication Header "Bearer" + " " + id_token
+ 
+ <br>
 
 ## Server Management Storage
 
+This Will Be Database Tables To Be used to store information about 
+Samba Hosts
+Samba File Systems
+Samba File Spaces
+Samba Shares / Groups / Invites
+and information about accesibility per user
 
 ### Postgres
 
+A sample migration to setup the necessary tables for the Postgres Configuration are in this repository under the migration folder.
+<br>
 
 ### DynamoDB (Serverless)
 
+This application will assume 3 DynamoDB Table Names 
+1. Samba_Hosts -> Stores Information about Hosts and Their File Systems and what Spaces Have been alocated to them
+2. Samba Spaces -> Stores Information about Allocated Spaces and What Samba Shares Have Been Allocated To Them
+3. Samba Shares -> Stores Information About Samba Shares, What space they live on, and invites and group members to those samba shares.
 
-### ETCD (Server Management Only)
+The recommended indexing for these tables are as follows:
+Other index names will not be searched against
+
+#### Samba_Hosts
+Primary Key Index (Only Partition Key) on column hostid and no Global Secondary Index/
+
+#### Samba_Spaces
+Primary Key Index (Only Partition Key) on column spaceid and Global Secondary Index with Only Partition Key fs_id
+
+#### Samba_Shares
+Primary Key Index (Only Partition Key) on column shareid and Global Secondary Index (Partition Key Only) on space_id
 
 
-## User Storage 
+###  ETCD (Server Management Only) -> STILL NEEDS TO BE IMPLEMENTED
+
+
+<br>
+
+## User Storage (This Feature Doesn't Exist For Now )
 
 ### Postgres
 

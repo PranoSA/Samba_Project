@@ -1,18 +1,25 @@
 package models
 
 type SpaceRequest struct {
-	email     string
-	megabytes int64
+	Owner     string
+	Megabytes int64
 }
 
 type SpaceResponse struct {
-	spaceid   int64
-	email     string
-	megabytes int64
+	Owner     string
+	Spaceid   string
+	Email     string
+	Megabytes int64
+}
+
+type DeleteSpaceRequest struct {
+	Owner    string
+	Space_id string
 }
 
 type SpaceModel interface {
-	CreateSpace(SpaceRequest) (SpaceResponse, error)
-	DeleteSpaceById(int64) (SpaceResponse, error)
-	GetSpaceById(int64) (SpaceResponse, error)
+	CreateSpace(SpaceRequest) (*SpaceResponse, error)
+	DeleteSpaceById(DeleteSpaceRequest) (*SpaceResponse, error)
+	GetSpaceById(DeleteSpaceRequest) (*SpaceResponse, error)
+	GetSpaceByOwner(string) (*[]SpaceResponse, error)
 }
